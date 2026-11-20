@@ -5,6 +5,7 @@ import {
   Download,
   Feather,
   FileText,
+  Fingerprint,
   KeyRound,
   Loader2,
   Lock,
@@ -24,8 +25,12 @@ import {
   changePin,
   createVault,
   destroyVault,
+  disableVaultBiometrics,
+  enableVaultBiometrics,
   unlockVault,
+  unlockVaultWithBiometrics,
   validatePin,
+  vaultBiometricStatus,
   vaultExists,
 } from '../../lib/vault';
 import {
@@ -211,6 +216,18 @@ const UnlockView: React.FC<{ onReady: () => void; onReset: () => void }> = ({ on
   const [, tick] = useState(0);
   const [showReset, setShowReset] = useState(false);
   const [resetText, setResetText] = useState('');
+  const [biometric, setBiometric] = useState(false);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    vaultBiometricStatus()
+      .then(({ available, enabled }) => {
+        if (mounted.current) setBiometric(available && enabled);
+      })
+      .catch(() => {});
+    return () => { mounted.current = false; };
+  }, []);
 
   useEffect(() => {
     if (waitUntil <= Date.now()) return;
@@ -246,6 +263,23 @@ const UnlockView: React.FC<{ onReady: () => void; onReset: () => void }> = ({ on
     }
   };
 
+  const unlockWithBiometrics = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    const startedAt = Date.now();
+    try {
+      const session = await unlockVaultWithBiometrics();
+      if (!mounted.current || document.hidden || Date.now() - startedAt > 30_000) return;
+      openCarnetSession(session);
+      onReady();
+    } catch {
+      setError('Biométrie interrompue ou indisponible. Tu peux utiliser ton code.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="px-4 pt-6 flex flex-col gap-4">
       <div className="flex flex-col items-center text-center gap-2">
@@ -257,7 +291,7 @@ const UnlockView: React.FC<{ onReady: () => void; onReset: () => void }> = ({ on
       </div>
       <form onSubmit={submit} className="flex flex-col gap-3">
         <PinField label="Code" value={pin} onChange={setPin} autoFocus autoComplete="current-password" />
-        {error && <p className="px-1 text-[13px] text-[#d4474c]">{error}{remaining > 0 ? ` (${remaining} s)` : ''}</p>}
+        {error && <p role="status" className="px-1 text-[13px] text-[#d4474c]">{error}{remaining > 0 ? ` (${remaining} s)` : ''}</p>}
         <button
           type="submit"
           disabled={!pin || busy || remaining > 0}
@@ -268,23 +302,37 @@ const UnlockView: React.FC<{ onReady: () => void; onReset: () => void }> = ({ on
         </button>
       </form>
 
+      {biometric && (
+        <button type="button" disabled={busy} onClick={unlockWithBiometrics}
+          className="h-12 rounded-full border-2 border-[#7174AA]/50 text-[#7174AA] font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer">
+          <Fingerprint className="w-5 h-5" aria-hidden="true" />
+          Ouvrir avec la biométrie
+        </button>
+      )}
       <button type="button" onClick={() => setShowReset((v) => !v)} className={`mt-2 text-[13px] underline ${s.muted} cursor-pointer`}>
         Code oublié ?
       </button>
       {showReset && (
         <div className="rounded-[20px] border-2 border-[#FF8989]/60 px-4 py-4 flex flex-col gap-2.5">
           <p className={`text-[13.5px] leading-snug ${s.strong}`}>
-            Sans le code, les notes ne peuvent pas être déchiffrées. Tu peux seulement <strong>effacer le carnet</strong>{' '}
-            et en recommencer un nouveau. Tape <strong>EFFACER</strong> pour confirmer.
+            Si tu n’as plus accès à ton carnet, tu peux <strong>effacer ses notes</strong> et en recommencer un nouveau.
+            Tape <strong>EFFACER</strong> pour confirmer.
           </p>
           <input value={resetText} onChange={(e) => setResetText(e.target.value)} className={s.input} aria-label="Confirmation" />
           <button
             type="button"
-            disabled={resetText.trim().toUpperCase() !== 'EFFACER'}
+            disabled={busy || resetText.trim().toUpperCase() !== 'EFFACER'}
             onClick={async () => {
-              await destroyVault();
-              toast('Carnet effacé.', { tone: 'info' });
-              onReset();
+              setBusy(true);
+              try {
+                await destroyVault();
+                toast('Carnet effacé.', { tone: 'info' });
+                onReset();
+              } catch {
+                toast('Impossible d’effacer le carnet. Réessaie.', { tone: 'info' });
+              } finally {
+                setBusy(false);
+              }
             }}
             className="h-12 rounded-full bg-[#FF5B5B] text-white font-semibold disabled:opacity-40 cursor-pointer"
           >
@@ -585,6 +633,59 @@ const ReleaseView: React.FC = () => {
 /* Liste                                                                    */
 /* ====================================================================== */
 
+const BiometricSettings: React.FC = () => {
+  const s = useStyles();
+  const [status, setStatus] = useState({ available: false, enabled: false });
+  const [pin, setPin] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => { vaultBiometricStatus().then(setStatus).catch(() => {}); }, []);
+  if (!status.available && !status.enabled) return null;
+
+  const update = async (disable: boolean) => {
+    setBusy(true);
+    setMessage('');
+    setPin('');
+    try {
+      if (disable) await disableVaultBiometrics();
+      else await enableVaultBiometrics(pin);
+      setStatus(await vaultBiometricStatus());
+      setMessage(disable ? 'Biométrie désactivée.' : 'Biométrie activée.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Modification impossible. Réessaie.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section aria-label="Biométrie du carnet" className="flex flex-col gap-2">
+      <p className={`text-[14px] font-semibold ${s.strong}`}>Biométrie du carnet</p>
+      <p className={`text-[13px] leading-snug ${s.muted}`}>
+        Les empreintes ou visages enregistrés sur ce téléphone pourront ouvrir le carnet. Garde ton code pour pouvoir
+        l’ouvrir si la biométrie change ou devient indisponible.
+      </p>
+      {status.available && (
+        <>
+          <PinField label="Code du carnet pour configurer la biométrie" value={pin} onChange={setPin} autoComplete="current-password" />
+          <button type="button" disabled={busy || !pin} onClick={() => void update(false)}
+            className="h-11 rounded-full bg-[#7174AA] text-white font-semibold disabled:opacity-40 cursor-pointer">
+            {status.enabled ? 'Reconfigurer la biométrie' : 'Activer la biométrie'}
+          </button>
+        </>
+      )}
+      {status.enabled && (
+        <button type="button" disabled={busy} onClick={() => void update(true)}
+          className={`h-10 text-[13px] underline disabled:opacity-40 cursor-pointer ${s.muted}`}>
+          Désactiver la biométrie
+        </button>
+      )}
+      {message && <p role="status" className={`text-[13px] ${s.strong}`}>{message}</p>}
+    </section>
+  );
+};
+
 const ListView: React.FC<{ onEdit: (e: CarnetEntry, isNew: boolean) => void; refreshKey: number }> = ({ onEdit, refreshKey }) => {
   const s = useStyles();
   const session = useCarnetSession();
@@ -599,6 +700,7 @@ const ListView: React.FC<{ onEdit: (e: CarnetEntry, isNew: boolean) => void; ref
   const [oldPin, setOldPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [wipeText, setWipeText] = useState('');
+  const [wiping, setWiping] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -751,6 +853,7 @@ const ListView: React.FC<{ onEdit: (e: CarnetEntry, isNew: boolean) => void; ref
             <FileText className="inline w-4 h-4 mr-1 text-[#7174AA]" />
             Chiffrement AES-256 sur l’appareil. Verrouillage auto après 5 min d’inactivité ou 30 s en arrière-plan.
           </p>
+          <BiometricSettings />
           <p className={`text-[14px] font-semibold ${s.strong}`}>Changer le code</p>
           <input type="password" placeholder="Code actuel" value={oldPin} onChange={(e) => setOldPin(e.target.value)} className={s.input} autoComplete="current-password" />
           <input type="password" placeholder="Nouveau code" value={newPin} onChange={(e) => setNewPin(e.target.value)} className={s.input} autoComplete="new-password" />
@@ -775,11 +878,18 @@ const ListView: React.FC<{ onEdit: (e: CarnetEntry, isNew: boolean) => void; ref
           <input value={wipeText} onChange={(e) => setWipeText(e.target.value)} className={s.input} aria-label="Confirmation de l’effacement" />
           <button
             type="button"
-            disabled={wipeText.trim().toUpperCase() !== 'EFFACER'}
+            disabled={wiping || wipeText.trim().toUpperCase() !== 'EFFACER'}
             onClick={async () => {
-              await destroyVault();
-              lockCarnet();
-              toast('Carnet effacé.', { tone: 'info' });
+              setWiping(true);
+              try {
+                await destroyVault();
+                lockCarnet();
+                toast('Carnet effacé.', { tone: 'info' });
+              } catch {
+                toast('Impossible d’effacer le carnet. Réessaie.', { tone: 'info' });
+              } finally {
+                setWiping(false);
+              }
             }}
             className="h-11 rounded-full bg-[#FF5B5B] text-white font-semibold disabled:opacity-40 cursor-pointer"
           >

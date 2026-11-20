@@ -1,6 +1,34 @@
 import { test, expect } from './fixtures';
 import { PRACTICE_SCENARIOS } from '../../src/features/practice/scenarios';
 
+test('la narration française démarre hors ligne et suit la partie sélectionnée', async ({ app, context }) => {
+  await context.addInitScript(() => {
+    const AudioElement = window.Audio;
+    window.Audio = function (src?: string) {
+      const audio = new AudioElement(src);
+      audio.addEventListener('timeupdate', () => {
+        document.documentElement.dataset.testAudioTime = String(audio.currentTime);
+      });
+      return audio;
+    } as typeof Audio;
+  });
+  await app.goto('/');
+  await app.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  await context.setOffline(true);
+  await app.goto('/temoignages/0');
+  await expect(app.getByText('Voix de synthèse préenregistrée')).toBeVisible();
+  await app.getByRole('button', { name: 'Lire', exact: true }).click();
+  await expect(app.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
+  const audioTime = () => app.locator('html').getAttribute('data-test-audio-time').then(Number);
+  await expect.poll(audioTime).toBeGreaterThan(0);
+  await app.getByRole('button', { name: 'Aller à la partie 3' }).click();
+  await expect(app.getByText(/j’ai montré les messages à la CPE/)).toBeVisible();
+  await expect(app.getByText('Partie 3/4')).toBeVisible();
+  await expect.poll(audioTime).toBeGreaterThan(10);
+  await app.getByRole('button', { name: 'Pause', exact: true }).click();
+  await expect(app.getByRole('button', { name: 'Lire', exact: true })).toBeVisible();
+});
+
 test('les filtres gardent les bons récits et le lecteur retrouve le bon retour', async ({ app }) => {
   await app.goto('/temoignages');
   const stories = app.getByRole('list', { name: 'Récits disponibles' });

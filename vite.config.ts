@@ -1,6 +1,7 @@
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { readdirSync } from 'node:fs';
 
 /**
  * Politique de sécurité du contenu (CSP), injectée uniquement dans le build de production
@@ -55,7 +56,11 @@ function precacheManifestPlugin(): Plugin {
         // Polices : uniquement les sous-ensembles latins en woff2 (les autres ne servent pas en français)
         .filter((f) => !/\.woff$/.test(f) && !/(cyrillic|greek|vietnamese)/.test(f))
         .map((f) => `/${f}`);
-      this.emitFile({ type: 'asset', fileName: 'precache-manifest.json', source: JSON.stringify(files) });
+      const audio = readdirSync(new URL('./public/audio/', import.meta.url))
+        .filter((f) => /^temoignage-[a-z-]+-fr\.mp3$/.test(f))
+        .sort()
+        .map((f) => `/audio/${f}`);
+      this.emitFile({ type: 'asset', fileName: 'precache-manifest.json', source: JSON.stringify([...files, ...audio]) });
     },
   };
 }

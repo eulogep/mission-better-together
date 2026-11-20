@@ -12,6 +12,8 @@
  * Il n'existe aucune porte dérobée : code oublié = données irrécupérables (sauf export préalable).
  */
 
+import { carnetBiometrics, hasCarnetBiometrics } from './carnetBiometrics';
+
 export const VAULT_DB = 'mbt-vault';
 const DB_VERSION = 1;
 export const PBKDF2_ITERATIONS = 600_000;
@@ -212,26 +214,87 @@ export async function getLockDelay(): Promise<number> {
   return a ? Math.max(0, a.lockedUntil - Date.now()) : 0;
 }
 
-export async function unlockVault(pin: string): Promise<UnlockResult> {
+async function verifyPin(pin: string): Promise<{ config: VaultConfig; rawDek?: ArrayBuffer; retryInMs?: number }> {
   const config = await getMeta<VaultConfig>('config');
   if (!config) throw new Error('Aucun carnet protégé.');
   const wait = await getLockDelay();
-  if (wait > 0) return { retryInMs: wait };
+  if (wait > 0) return { config, retryInMs: wait };
 
+  let rawDek: ArrayBuffer;
   try {
     const kek = await deriveKek(pin, config.salt, config.iterations);
-    const rawDek = await decryptBytes(kek, config.wrappedDek);
-    const dek = await importDek(rawDek);
-    new Uint8Array(rawDek).fill(0);
-    await putMeta({ key: 'attempts', failures: 0, lockedUntil: 0 } satisfies AttemptState);
-    return { session: { dek } };
+    rawDek = await decryptBytes(kek, config.wrappedDek);
   } catch {
     const prev = (await getMeta<AttemptState>('attempts')) ?? { key: 'attempts', failures: 0, lockedUntil: 0 };
     const failures = prev.failures + 1;
     // Après 5 échecs : 30 s, puis 60 s, 120 s… (plafonné à 1 h)
     const delay = failures >= MAX_FREE_ATTEMPTS ? Math.min(3_600_000, 30_000 * 2 ** (failures - MAX_FREE_ATTEMPTS)) : 0;
     await putMeta({ key: 'attempts', failures, lockedUntil: Date.now() + delay } satisfies AttemptState);
-    return { retryInMs: delay || undefined };
+    return { config, retryInMs: delay || undefined };
+  }
+  try {
+    await putMeta({ key: 'attempts', failures: 0, lockedUntil: 0 } satisfies AttemptState);
+    return { config, rawDek };
+  } catch (error) {
+    new Uint8Array(rawDek).fill(0);
+    throw error;
+  }
+}
+
+export async function unlockVault(pin: string): Promise<UnlockResult> {
+  const { rawDek, retryInMs } = await verifyPin(pin);
+  if (!rawDek) return { retryInMs };
+  try {
+    return { session: { dek: await importDek(rawDek) } };
+  } finally {
+    new Uint8Array(rawDek).fill(0);
+  }
+}
+
+export async function vaultBiometricStatus() {
+  if (!hasCarnetBiometrics()) return { available: false, enabled: false };
+  const [config, marker, { available }] = await Promise.all([
+    getMeta<VaultConfig>('config'),
+    getMeta<{ vaultId: string | null }>('biometric'),
+    carnetBiometrics.availability(),
+  ]);
+  return { available, enabled: !!config && marker?.vaultId === config.createdAt };
+}
+
+export async function enableVaultBiometrics(pin: string): Promise<void> {
+  if (!hasCarnetBiometrics()) throw new Error('Biométrie indisponible sur cet appareil.');
+  const { config, rawDek, retryInMs } = await verifyPin(pin);
+  if (!rawDek) throw new Error(retryInMs ? 'Trop d’essais. Patiente avant de réessayer.' : 'Code incorrect.');
+  try {
+    const key = btoa(String.fromCharCode(...new Uint8Array(rawDek)));
+    await carnetBiometrics.store({ vaultId: config.createdAt, key });
+    await putMeta({ key: 'biometric', vaultId: config.createdAt });
+  } finally {
+    new Uint8Array(rawDek).fill(0);
+  }
+}
+
+export async function disableVaultBiometrics(): Promise<void> {
+  if (hasCarnetBiometrics()) await carnetBiometrics.clear();
+  await putMeta({ key: 'biometric', vaultId: null });
+}
+
+export async function unlockVaultWithBiometrics(): Promise<VaultSession> {
+  const config = await getMeta<VaultConfig>('config');
+  const marker = await getMeta<{ vaultId: string | null }>('biometric');
+  if (!hasCarnetBiometrics() || !config || marker?.vaultId !== config.createdAt) {
+    throw new Error('Biométrie inactive.');
+  }
+  const { key } = await carnetBiometrics.read({ vaultId: config.createdAt });
+  const rawDek = Uint8Array.from(atob(key), (char) => char.charCodeAt(0));
+  try {
+    if (rawDek.length !== 32) throw new Error('Clé biométrique invalide.');
+    // Un effacement ou une désactivation pendant le dialogue invalide la demande en cours.
+    const current = await getMeta<{ vaultId: string | null }>('biometric');
+    if (current?.vaultId !== config.createdAt) throw new Error('Biométrie inactive.');
+    return { dek: await importDek(rawDek) };
+  } finally {
+    rawDek.fill(0);
   }
 }
 
@@ -255,6 +318,7 @@ export async function changePin(oldPin: string, newPin: string): Promise<boolean
 
 /** Efface définitivement le coffre (toutes les entrées et pièces jointes). */
 export async function destroyVault(): Promise<void> {
+  if (hasCarnetBiometrics()) await disableVaultBiometrics();
   if (dbPromise) {
     (await dbPromise).close();
     dbPromise = null;
@@ -263,7 +327,7 @@ export async function destroyVault(): Promise<void> {
     const req = indexedDB.deleteDatabase(VAULT_DB);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
-    req.onblocked = () => resolve();
+    req.onblocked = () => reject(new Error('Ferme les autres fenêtres du carnet, puis réessaie.'));
   });
 }
 

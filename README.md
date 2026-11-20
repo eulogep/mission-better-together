@@ -8,6 +8,11 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/eulogep/mission-better-together/releases/download/v1.0.0-beta.1/MBT-Android-v1.0.0-beta.1.apk"><strong>⬇️ Télécharger MBT pour Android (APK)</strong></a><br>
+  Version de test gratuite · Android 7 ou supérieur · <a href="https://github.com/eulogep/mission-better-together/releases/tag/v1.0.0-beta.1">Notes de version et empreinte SHA-256</a>
+</p>
+
+<p align="center">
   <a href="https://github.com/eulogep/mission-better-together/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/eulogep/mission-better-together/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-7174AA"></a>
   <img alt="React 19" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white">
@@ -43,7 +48,7 @@ comment tenir le coup ?*
 regarde son écran :
 
 - 🫥 **Discrète** — sortie rapide en un appui, mode camouflage en fausse page de révisions.
-- 🔐 **Privée** — pas de compte, pas de serveur, pas de traceur. Le carnet est chiffré sur le téléphone.
+- 🔐 **Privée** — pas de compte ou de traceur. Le carnet reste chiffré sur l’appareil.
 - 🧭 **Transparente** — fiches et coordonnées sourcées, récits et mises en situation clairement signalés comme fictifs.
 - 📴 **Toujours là** — fonctionne hors ligne, sur mobile comme sur ordinateur, installable sur Android et iOS.
 
@@ -135,7 +140,7 @@ regarde son écran :
 
 ### 🎧 Récits
 - Huit récits fictifs, à filtrer par contexte (école, en ligne, famille ou stage).
-- Transcriptions en français et en anglais, sous-titres et lecture à voix haute avec synthèse vocale selon l’appareil.
+- Transcriptions en français et en anglais, huit narrations de synthèse françaises intégrées et sous-titres synchronisés, y compris hors ligne.
 - Illustrations générées par IA et fiche pratique liée à chaque récit.
 
 </td>
@@ -186,6 +191,10 @@ Détails, limites et obligations RGPD / mineurs : [docs/SECURITE.md](docs/SECURI
 
 ## 🚀 Démarrer en 2 minutes
 
+### Installer sur Android
+
+[Télécharger l’APK de test](https://github.com/eulogep/mission-better-together/releases/download/v1.0.0-beta.1/MBT-Android-v1.0.0-beta.1.apk), puis ouvrir le fichier sur le téléphone. Android peut demander d’autoriser l’installation depuis le navigateur. Les essais des appels, des SMS, de la localisation et de la biométrie sur téléphones restent à effectuer. Utilise des données fictives pour ces essais.
+
 La CI utilise **Node.js 22**. Google Chrome est requis pour les tests de parcours.
 
 ```bash
@@ -232,9 +241,10 @@ docs/             audit, architecture, sécurité, mobile et recherche sur les �
 | Vérification | Résultat |
 | --- | --- |
 | TypeScript strict | ✅ |
-| Tests unitaires (Vitest) | ✅ 67/67 |
-| Parcours (Playwright, build de production) | ✅ 74/74 sur les profils mobile et ordinateur |
-| Compilation Android (`assembleDebug`) | [Validation initiale et état des tests sur appareils](docs/MOBILE.md#état-vérifié-20-novembre-2026) |
+| Tests unitaires (Vitest) | ✅ 70/70 |
+| Parcours (Playwright, build de production) | ✅ 76 cas validés sur les profils mobile et ordinateur, dont un relancé séparément |
+| Compilation Android | ✅ APK de test et AAB non signé. [État des essais mobiles](docs/MOBILE.md#état-vérifié-le-20-novembre-2026) |
+| Backend de modération | ✅ [Scénario SQL sur PostgreSQL embarqué](docs/MODERATION.md#vérification-et-mise-en-service) |
 | Défilement horizontal à 320 px | ✅ aucun |
 
 La [CI du commit `f011e22`](https://github.com/eulogep/mission-better-together/actions/runs/44789575336) a validé les types, les tests unitaires, le build et les parcours Chrome. Les tests couvrent notamment le carnet chiffré, les liens directs, le mode discret, le fonctionnement hors ligne et la sélection du ressenti au clavier et au pointeur.
@@ -246,12 +256,12 @@ La [CI du commit `f011e22`](https://github.com/eulogep/mission-better-together/a
 - [x] Récits filtrables, atelier interactif et préparation de conversation
 - [x] Arbre intérieur et grille de représentation du ressenti
 - [x] Projets Android et iOS (Capacitor), APK Android compilé
-- [ ] Tests sur appareils réels (appels, SMS, permissions)
-- [ ] Déverrouillage du carnet par biométrie (Keystore / Keychain)
-- [ ] Relecture des contenus par des professionnels de l’enfance
-- [ ] Voix enregistrées pour les récits ([script prêt](scripts/generate-voices.mjs))
-- [ ] Backend modéré pour les témoignages ([schéma conçu](docs/backend-schema.sql))
-- [ ] Publication sur Google Play et l’App Store ([checklist](docs/MOBILE.md))
+- [ ] [Essais sur appareils réels](docs/MOBILE.md#protocole-sur-appareils-réels) (appels, SMS et permissions)
+- [ ] Biométrie du carnet intégrée côté Android et iOS. Validation sur téléphones et compilation iOS en attente.
+- [ ] Avis de professionnels de l’enfance. [Dossier de relecture](docs/RELECTURE-ENFANCE.md)
+- [x] [Huit narrations de synthèse françaises préenregistrées](docs/VOIX.md), utilisables hors ligne
+- [ ] [Backend modéré des témoignages](docs/MODERATION.md). Migration testée localement. Déploiement et collecte en attente.
+- [ ] Publication sur Google Play et l’App Store. [Préparation et dépendances](docs/MOBILE.md#préparation-de-publication)
 
 ## 🤝 Contribuer
 
@@ -283,7 +293,7 @@ Code sous licence [MIT](LICENSE) — © 2026 Eulogep.
 
 Composants tiers sous leur propre licence : police Ubuntu (Ubuntu Font Licence 1.0), Leaflet (BSD-2-Clause),
 React, Vite, Tailwind CSS, framer-motion, lucide-react, Capacitor (MIT). Données cartographiques
-© contributeurs OpenStreetMap (ODbL).
+© contributeurs OpenStreetMap (ODbL). Narrations françaises sous [CC BY-SA 4.0](public/audio/ATTRIBUTIONS.md).
 
 ---
 

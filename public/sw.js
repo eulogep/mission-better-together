@@ -2,7 +2,7 @@
  * Service worker MBT : rend l'application disponible hors ligne (numéros d'urgence,
  * conseils, contacts, journal). Les cartes et API externes restent en ligne uniquement.
  */
-const CACHE = 'mbt-v11';
+const CACHE = 'mbt-v12';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -92,7 +92,9 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request).then(
       (cached) =>
-        cached ||
+        (cached && url.pathname.startsWith('/audio/') && request.headers.has('range')
+          ? audioRange(cached, request.headers.get('range'))
+          : cached) ||
         fetch(request).then((response) => {
           // Ne pas mettre en cache une page HTML servie à la place d'un fichier absent
           const isHtml = (response.headers.get('content-type') || '').includes('text/html');
@@ -105,3 +107,22 @@ self.addEventListener('fetch', (event) => {
     )
   );
 });
+
+async function audioRange(response, range) {
+  const blob = await response.blob();
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+  const start = match?.[1] ? Number(match[1]) : Math.max(0, blob.size - Number(match?.[2]));
+  const end = match?.[1] && match[2] ? Math.min(Number(match[2]), blob.size - 1) : blob.size - 1;
+  if (!match || start > end || start >= blob.size) {
+    return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${blob.size}` } });
+  }
+  return new Response(blob.slice(start, end + 1), {
+    status: 206,
+    headers: {
+      'Accept-Ranges': 'bytes',
+      'Content-Range': `bytes ${start}-${end}/${blob.size}`,
+      'Content-Length': String(end - start + 1),
+      'Content-Type': 'audio/mpeg',
+    },
+  });
+}

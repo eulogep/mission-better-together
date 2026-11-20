@@ -10,6 +10,8 @@ const config: CapacitorConfig = {
   appId: 'fr.missionbettertogether.mbt',
   appName: 'MBT',
   webDir: 'dist',
+  // Le pont natif transporte la clé de session du carnet en mémoire.
+  loggingBehavior: 'none',
   server: {
     androidScheme: 'https',
   },

@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BookOpenText, ChevronRight, Languages, MessagesSquare, Pause, Play, SkipBack, SkipForward, X, Volume2, VolumeX } from 'lucide-react';
 import { ScreenShell } from '../components/ScreenShell';
 import { useSerenity } from '../context/SerenityContext';
 import { ARTICLES } from '../data/articles';
 import { TESTIMONIES, TESTIMONY_THEMES, TestimonyTheme, testimonyAudioUrl, testimonyIndices } from '../data/content';
+import audioCues from '../data/testimonyAudio.generated.json';
 import { PRACTICE_SCENARIOS } from '../features/practice/scenarios';
 
 const THEME_OPTIONS: [TestimonyTheme | null, string][] = [
@@ -162,22 +163,13 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
   const [voiceOn, setVoiceOn] = useState(true);
   const [showTranscript, setShowTranscript] = useState(false);
 
-  /* ---------- Voix enregistrée (fichier MP3 ElevenLabs), si disponible ---------- */
+  /* ---------- Narration préenregistrée ---------- */
   const audioSrc = testimonyAudioUrl(item, lang);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioOk, setAudioOk] = useState<boolean | null>(null); // null = en cours de vérification
   const useAudio = voiceOn && !!audioSrc && audioOk !== false;
 
-  // Début de chaque phrase, en proportion de la durée (selon la longueur du texte)
-  const lineStarts = useMemo(() => {
-    const total = lines.reduce((n, l) => n + l.length, 0) || 1;
-    let acc = 0;
-    return lines.map((l) => {
-      const start = acc / total;
-      acc += l.length;
-      return start;
-    });
-  }, [lines]);
+  const lineStarts = (audioCues as Record<string, number[]>)[item.id];
 
   useEffect(() => {
     setAudioOk(null);
@@ -205,7 +197,9 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
     const audio = audioRef.current;
     if (!audio) return;
     if (useAudio && isPlaying) {
-      audio.play().catch(() => setAudioOk(false)); // fichier absent → voix du téléphone
+      audio.play().catch((error: DOMException) => {
+        if (error.name !== 'AbortError') setAudioOk(false);
+      });
     } else {
       audio.pause();
     }
@@ -217,9 +211,8 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
     if (!audio || !useAudio) return;
     const onTime = () => {
       if (!audio.duration) return;
-      const frac = audio.currentTime / audio.duration;
       let i = 0;
-      while (i < lineStarts.length - 1 && frac >= lineStarts[i + 1]) i++;
+      while (i < lineStarts.length - 1 && audio.currentTime >= lineStarts[i + 1]) i++;
       setLineIdx(i);
     };
     const onEnded = () => {
@@ -234,12 +227,12 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
     };
   }, [useAudio, lineStarts, audioSrc]);
 
-  // Nouveau témoignage : on repart du début
+  // Nouveau témoignage ou nouvelle langue : on repart du début.
   useEffect(() => {
     setLineIdx(0);
     setIsPlaying(false);
     setEnded(false);
-  }, [index]);
+  }, [index, lang]);
 
   // Voix de synthèse (repli) : une phrase à la fois, puis la suivante
   useEffect(() => {
@@ -314,6 +307,12 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
       setEnded(false);
       if (audioRef.current) audioRef.current.currentTime = 0;
     }
+    // Safari et certaines WebViews demandent un geste utilisateur pour commencer.
+    if (useAudio) {
+      audioRef.current?.play().catch((error: DOMException) => {
+        if (error.name !== 'AbortError') setAudioOk(false);
+      });
+    }
     setIsPlaying(true);
   };
 
@@ -321,7 +320,7 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
     setLineIdx(i);
     setEnded(false);
     const audio = audioRef.current;
-    if (useAudio && audio?.duration) audio.currentTime = audio.duration * lineStarts[i];
+    if (useAudio && audio?.duration) audio.currentTime = lineStarts[i];
   };
 
   const moveStory = (offset: -1 | 1) => {
@@ -400,7 +399,7 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
               {!voiceOn
                 ? 'Sous-titres seuls'
                 : useAudio && audioOk
-                  ? 'Voix enregistrée'
+                  ? 'Voix de synthèse préenregistrée'
                   : HAS_SPEECH
                     ? 'Voix de synthèse'
                     : 'Sous-titres seuls'}

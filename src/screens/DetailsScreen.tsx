@@ -20,10 +20,10 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ onBack, onHome, on
   const text = nightMode ? 'text-[#dfe2f3]' : 'text-[#3b3b3b]';
 
   const privacy = [
-    { icon: ServerOff, title: 'Pas de compte, pas de serveur MBT', text: 'MBT ne collecte rien : il n’existe pas de base de données MBT où tes informations seraient envoyées.' },
-    { icon: Lock, title: 'Carnet chiffré', text: 'Tes notes et captures sont chiffrées sur ton appareil avec ton code. Sans ce code, personne ne peut les lire, pas même MBT.' },
+    { icon: ServerOff, title: 'Pas de compte MBT', text: 'Ton carnet, tes contacts et tes réponses personnelles restent sur ton appareil.' },
+    { icon: Lock, title: 'Carnet chiffré', text: 'Ton code ouvre tes notes et tes captures. Sur un téléphone compatible, tu peux aussi activer la biométrie dans le carnet.' },
     { icon: Smartphone, title: 'Contacts sur ton téléphone', text: 'Tes personnes de confiance restent sur ton appareil. Elles ne sont pas chiffrées pour rester utilisables en urgence sans code.' },
-    { icon: MapPin, title: 'Position seulement si tu le demandes', text: 'Elle sert à chercher des lieux d’aide (service OpenStreetMap) ou à l’ajouter à un SMS que tu prépares. Elle n’est jamais suivie ni enregistrée.' },
+    { icon: MapPin, title: 'Position seulement si tu le demandes', text: 'Pour trouver des lieux d’aide, l’app transmet ta position aux services de cartographie. Tu peux aussi choisir de l’ajouter à un SMS que tu prépares.' },
     { icon: Phone, title: 'Appels et SMS par ton téléphone', text: 'MBT ouvre ton composeur ou ton appli SMS : rien n’est envoyé sans ton action, et MBT n’est relié à aucun service d’urgence.' },
     { icon: LogOut, title: 'Sortie rapide', text: 'Un appui ferme l’application et ouvre une page neutre. La conversation de l’assistant est effacée.' },
     { icon: EyeOff, title: 'Mode discret', text: 'Masque l’app derrière une fausse page de révisions et verrouille le carnet. Double appui sur le titre pour revenir.' },
@@ -71,7 +71,7 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ onBack, onHome, on
             <span className="w-12 h-12 rounded-full bg-[#FF5B5B] text-white flex items-center justify-center shrink-0 mbt-phone-fab">
               <Phone className="w-6 h-6" strokeWidth={2.3} />
             </span>
-            <p className={`font-ubuntu font-medium text-[18px] leading-[1.3] ${violet}`}>Le bouton SOS appelle le 112.</p>
+            <p className={`font-ubuntu font-medium text-[18px] leading-[1.3] ${violet}`}>Le bouton SOS ouvre l’appel au 112.</p>
           </div>
           <p className={`mt-3 text-[14.5px] leading-[1.5] ${text}`}>
             Maintiens-le appuyé une seconde (un anneau se remplit) : cela évite les appels par erreur. Le 112 met en relation

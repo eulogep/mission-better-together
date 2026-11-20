@@ -439,7 +439,7 @@ export interface TestimonyItem {
 }
 
 /**
- * Fichier audio (voix ElevenLabs) d'un témoignage, généré par `npm run voices`.
+ * Narration de synthèse préenregistrée, générée localement par `npm run voices`.
  * S'il n'existe pas, le lecteur utilise la voix de synthèse du téléphone.
  */
 export const testimonyAudioUrl = (item: TestimonyItem, lang: 'fr' | 'en'): string | undefined =>

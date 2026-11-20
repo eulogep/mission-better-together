@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Face ID permet d’ouvrir ton carnet protégé si tu actives cette option.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MBT utilise ta position uniquement quand tu le demandes : pour trouver des lieux d’aide proches ou l’ajouter à un SMS que tu prépares. Elle n’est ni suivie ni enregistrée.</string>
 	<key>LSApplicationQueriesSchemes</key>

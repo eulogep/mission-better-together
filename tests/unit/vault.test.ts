@@ -1,21 +1,39 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { carnetBiometrics, hasCarnetBiometrics } from '../../src/lib/carnetBiometrics';
 import {
   changePin,
   createVault,
   decryptJson,
   destroyVault,
+  disableVaultBiometrics,
+  enableVaultBiometrics,
   encryptJson,
   listRecords,
   putRecord,
   unlockVault,
+  unlockVaultWithBiometrics,
   validatePin,
+  vaultBiometricStatus,
   vaultExists,
 } from '../../src/lib/vault';
 
 const PIN = 'ma phrase secrète';
 
+vi.mock('../../src/lib/carnetBiometrics', () => ({
+  hasCarnetBiometrics: vi.fn(() => false),
+  carnetBiometrics: {
+    availability: vi.fn(async () => ({ available: true })),
+    store: vi.fn(),
+    read: vi.fn(),
+    clear: vi.fn(),
+  },
+}));
+
 afterEach(async () => {
+  vi.mocked(carnetBiometrics.clear).mockResolvedValue(undefined);
   await destroyVault();
+  vi.mocked(hasCarnetBiometrics).mockReturnValue(false);
+  vi.clearAllMocks();
 });
 
 describe('coffre chiffré', () => {
@@ -72,6 +90,49 @@ describe('coffre chiffré', () => {
 
   it('efface définitivement le coffre', async () => {
     await createVault(PIN);
+    await destroyVault();
+    expect(await vaultExists()).toBe(false);
+  });
+
+  it('sur le web, conserve uniquement le déverrouillage par code', async () => {
+    await createVault(PIN);
+    expect(await vaultBiometricStatus()).toEqual({ available: false, enabled: false });
+    await expect(enableVaultBiometrics(PIN)).rejects.toThrow('indisponible');
+    await expect(unlockVaultWithBiometrics()).rejects.toThrow('inactive');
+    expect(carnetBiometrics.store).not.toHaveBeenCalled();
+  });
+
+  it('active la biométrie seulement après le bon code et le succès du coffre natif', async () => {
+    vi.mocked(hasCarnetBiometrics).mockReturnValue(true);
+    const original = await createVault(PIN);
+    const note = await encryptJson(original, { secret: 42 });
+    await expect(enableVaultBiometrics('faux-code')).rejects.toThrow('incorrect');
+    expect(carnetBiometrics.store).not.toHaveBeenCalled();
+    vi.mocked(carnetBiometrics.store).mockRejectedValueOnce(new Error('Annulé'));
+    await expect(enableVaultBiometrics(PIN)).rejects.toThrow('Annulé');
+    expect((await vaultBiometricStatus()).enabled).toBe(false);
+
+    await enableVaultBiometrics(PIN);
+    const enrollment = vi.mocked(carnetBiometrics.store).mock.lastCall![0];
+    expect(enrollment.key).not.toBe(PIN);
+    vi.mocked(carnetBiometrics.read).mockRejectedValueOnce(new Error('Annulé'));
+    await expect(unlockVaultWithBiometrics()).rejects.toThrow('Annulé');
+    vi.mocked(carnetBiometrics.read).mockResolvedValueOnce({ key: enrollment.key });
+    expect(await decryptJson(await unlockVaultWithBiometrics(), note)).toEqual({ secret: 42 });
+    expect(carnetBiometrics.read).toHaveBeenCalledWith({ vaultId: enrollment.vaultId });
+
+    await disableVaultBiometrics();
+    await expect(unlockVaultWithBiometrics()).rejects.toThrow('inactive');
+    expect(carnetBiometrics.clear).toHaveBeenCalledOnce();
+    expect((await unlockVault(PIN)).session).toBeDefined();
+  });
+
+  it('demande la suppression de la clé native avant d’effacer le carnet', async () => {
+    vi.mocked(hasCarnetBiometrics).mockReturnValue(true);
+    await createVault(PIN);
+    vi.mocked(carnetBiometrics.clear).mockRejectedValueOnce(new Error('Coffre indisponible'));
+    await expect(destroyVault()).rejects.toThrow('Coffre indisponible');
+    expect(await vaultExists()).toBe(true);
     await destroyVault();
     expect(await vaultExists()).toBe(false);
   });
