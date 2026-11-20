@@ -1,5 +1,1 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Play">
-<path id="icon" d="M8.33333 17.5833C8.33333 8.375 14.8542 4.60417 22.8333 9.20833L35.7083 16.625C43.6875 21.2292 43.6875 28.7708 35.7083 33.375L22.8333 40.7917C14.8542 45.3958 8.33333 41.625 8.33333 32.4167V17.5833Z" stroke-width="6" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" stroke="#292D32"/>
-</g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="none" overflow="visible" preserveAspectRatio="none" style="display:block" viewBox="0 0 50 50"><g id="Play"><path id="icon" stroke="#292D32" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6" d="M8.33333 17.5833C8.33333 8.375 14.8542 4.60417 22.8333 9.20833L35.7083 16.625C43.6875 21.2292 43.6875 28.7708 35.7083 33.375L22.8333 40.7917C14.8542 45.3958 8.33333 41.625 8.33333 32.4167V17.5833Z"/></g></svg>
