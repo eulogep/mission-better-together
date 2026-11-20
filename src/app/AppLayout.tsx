@@ -87,8 +87,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ current, onNavigate, onSos
           className={`hidden lg:flex w-[268px] shrink-0 flex-col border-r px-4 pt-6 pb-5 overflow-y-auto no-scrollbar ${
             nightMode ? 'bg-[#141727] border-white/10' : 'bg-white border-black/[0.07]'
           }`}
-          aria-label="Navigation principale"
-        >
+>
           <button
             type="button"
             onClick={() => onNavigate({ name: 'accueil' })}
@@ -102,7 +101,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ current, onNavigate, onSos
             </span>
           </button>
 
-          <nav className="mt-6 flex flex-col gap-0.5">
+          <nav className="mt-6 flex flex-col gap-0.5" aria-label="Navigation principale">
             {SIDE_ITEMS.map((item) => {
               const active = item.match?.(current) ?? false;
               const Icon = item.icon;

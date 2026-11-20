@@ -121,7 +121,8 @@ interface TemoinQuestionProps {
   onHome: () => void;
   onYes: () => void;
   onNo: () => void;
-  onEmergencyCall: () => void;
+  /** @deprecated SOS dans la navigation */
+  onEmergencyCall?: () => void;
 }
 
 export const TemoinQuestionScreen: React.FC<TemoinQuestionProps> = ({
@@ -130,7 +131,6 @@ export const TemoinQuestionScreen: React.FC<TemoinQuestionProps> = ({
   onHome,
   onYes,
   onNo,
-  onEmergencyCall,
 }) => {
   const { nightMode } = useSerenity();
   const copy = {
@@ -147,16 +147,23 @@ export const TemoinQuestionScreen: React.FC<TemoinQuestionProps> = ({
       question: 'La victime est-elle en danger ?',
     },
   }[step];
+  const stepIndex = { blessee: 0, harceleurs: 1, danger: 2 }[step];
 
   return (
-    <ScreenShell
-      theme="default"
-      showBack
-      onBack={onBack}
-      onBrandClick={onHome}
-      onPhoneFabClick={onEmergencyCall}
-    >
-      <div className="px-4 flex flex-col items-center mt-8">
+    <ScreenShell theme="default" showBack onBack={onBack} onBrandClick={onHome}>
+      <div className="px-4 flex flex-col items-center mt-4">
+        {/* Progression du quiz */}
+        <div className="flex items-center gap-2" aria-label={`Question ${stepIndex + 1} sur 3`}>
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className={`h-2.5 rounded-full transition-all duration-300 ${
+                i < stepIndex ? 'w-2.5 bg-[#FF8989]' : i === stepIndex ? 'w-8 bg-[#FF8989]' : 'w-2.5 bg-[#FF8989]/25'
+              }`}
+            />
+          ))}
+          <span className="ml-1 text-[12px] font-semibold text-[#FF8989]">{stepIndex + 1}/3</span>
+        </div>
         <div className="min-h-[56px] flex items-center justify-center mb-2">
           {copy.subtitle && (
             <p
@@ -183,6 +190,9 @@ export const TemoinQuestionScreen: React.FC<TemoinQuestionProps> = ({
             NON
           </MbtButton>
         </div>
+        <p className={`mt-5 px-4 text-center font-ubuntu text-[13.5px] leading-snug ${nightMode ? 'text-[#aab0cc]' : 'text-[#8e8e93]'}`}>
+          Un doute ? Réponds <strong className="text-[#FF8989]">OUI</strong> : mieux vaut alerter pour rien.
+        </p>
       </div>
     </ScreenShell>
   );

@@ -9,3 +9,7 @@ dist/
 # Builds natifs générés
 android/app/build/
 ios/App/Pods/
+
+# Tests
+test-results/
+playwright-report/
