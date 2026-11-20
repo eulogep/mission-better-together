@@ -4,7 +4,7 @@
 
 <p align="center">
   <b>Une application gratuite, privée et sans compte pour agir contre le harcèlement scolaire.</b><br>
-  Alerter un proche · Trouver de l’aide · Garder des preuves chiffrées · Respirer quand tout déborde.
+  Alerter un proche · Garder des preuves chiffrées · Préparer une conversation · Représenter son ressenti.
 </p>
 
 <p align="center">
@@ -44,7 +44,7 @@ regarde son écran :
 
 - 🫥 **Discrète** — sortie rapide en un appui, mode camouflage en fausse page de révisions.
 - 🔐 **Privée** — pas de compte, pas de serveur, pas de traceur. Le carnet est chiffré sur le téléphone.
-- 🧭 **Honnête** — chaque numéro et chaque lien est vérifié et daté. Rien n’est simulé, aucune fausse promesse.
+- 🧭 **Transparente** — fiches et coordonnées sourcées, récits et mises en situation clairement signalés comme fictifs.
 - 📴 **Toujours là** — fonctionne hors ligne, sur mobile comme sur ordinateur, installable sur Android et iOS.
 
 ## 📱 Aperçu
@@ -60,11 +60,16 @@ regarde son écran :
     <td align="center"><img src="docs/screenshots/meteo.png" width="230" alt="Météo du jour"><br><sub><b>Météo du jour</b> — une réponse adaptée à ton état</sub></td>
     <td align="center"><img src="docs/screenshots/structure-3018.png" width="230" alt="Structure 3018"><br><sub><b>Structures d’aide</b> — coordonnées vérifiées</sub></td>
   </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/grille-ressenti.png" width="230" alt="Grille du ressenti dans Mon arbre intérieur"><br><sub><b>Mon arbre intérieur</b> — choisir son ressenti sur deux axes</sub></td>
+    <td align="center"><img src="docs/screenshots/atelier.png" width="230" alt="Atelier interactif sur les moqueries dans un groupe de classe"><br><sub><b>S’entraîner à réagir</b> — explorer les effets de chaque choix</sub></td>
+    <td align="center"><img src="docs/screenshots/carte-conversation.png" width="230" alt="Exemple fictif de conversation affichée en grands caractères"><br><sub><b>Préparer une conversation</b> — afficher ses mots pour les montrer</sub></td>
+  </tr>
 </table>
 
 <p align="center">
   <img src="docs/screenshots/desktop.png" width="90%" alt="Version ordinateur"><br>
-  <sub>Version ordinateur : une vraie interface responsive, pas un téléphone dessiné au milieu de l’écran.</sub>
+  <sub>La version ordinateur utilise une navigation latérale et une mise en page adaptée à l’écran.</sub>
 </p>
 
 ## ✨ Fonctionnalités
@@ -125,11 +130,45 @@ regarde son écran :
 
 </td>
 </tr>
+<tr>
+<td valign="top">
+
+### 🎧 Récits
+- Huit récits fictifs, à filtrer par contexte (école, en ligne, famille ou stage).
+- Transcriptions en français et en anglais, sous-titres et lecture à voix haute avec synthèse vocale selon l’appareil.
+- Illustrations générées par IA et fiche pratique liée à chaque récit.
+
+</td>
+<td valign="top">
+
+### 🤝 S’entraîner à réagir
+- Trois mises en situation fictives pour se placer du point de vue d’un témoin, d’un élève ou d’un parent.
+- Chaque réponse explique ce qu’elle peut changer et donne accès à une fiche pratique et à des sources officielles.
+- Un modèle de phrase modifiable aide à préparer les premiers mots.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### ✍️ Préparer une conversation
+- Choisis ta situation, ton interlocuteur et l’aide que tu aimerais demander pour composer un brouillon modifiable.
+- Répète le texte paragraphe par paragraphe, copie-le ou affiche-le en grands caractères pour le montrer à quelqu’un.
+- Le brouillon s’efface quand tu quittes l’écran ou passes en mode discret.
+
+</td>
+<td valign="top">
+
+### 🌳 Mon arbre intérieur
+- Un arbre illustré réagit au ressenti choisi depuis l’accueil ou le jardin.
+- La grille de 25 points combine deux dimensions du ressenti, de désagréable à agréable et de calme à animé. Les deux listes permettent aussi d’exprimer un ressenti mélangé.
+- La météo et le mouvement de l’arbre donnent une représentation visuelle du moment. Le modèle, les sources scientifiques et leurs limites sont détaillés dans la [note de recherche](docs/RECHERCHE-EMOTIONS.md).
+
+</td>
+</tr>
 </table>
 
-Et aussi : **météo d’humeur** sur l’accueil, contacts d’urgence (ajout, modification, import Android), récits
-illustratifs lus à voix haute (clairement **marqués fictifs**), assistant d’orientation automatique, accueil du
-premier lancement en 3 étapes, transitions directionnelles, raccourcis d’icône (« Alerter », « Lieux », « Carnet »).
+Et aussi, les contacts d’urgence (ajout, modification, import Android), l’assistant d’orientation, l’accueil du premier lancement en trois étapes et les raccourcis d’icône (« Alerter », « Lieux », « Carnet »).
 
 ## 🔒 Vie privée par conception
 
@@ -137,6 +176,7 @@ premier lancement en 3 étapes, transitions directionnelles, raccourcis d’icô
 |---|---|
 | **Aucun compte, aucun serveur MBT** | Il n’existe pas de base de données où tes informations pourraient fuiter. |
 | **Carnet chiffré** | Sans ton code, personne ne peut le lire, pas même les développeurs. Un test automatique vérifie qu’aucun texte n’est stocké en clair. |
+| **Ressenti et brouillons** | Le ressenti reste dans l’onglet et peut être effacé à tout moment. Les brouillons de conversation vivent le temps de l’écran. Le mode discret efface les deux. |
 | **Zéro traceur** | Pas d’analyse d’audience, pas de publicité, police auto-hébergée (aucune requête vers Google). |
 | **Rien d’automatique** | Aucun appel, SMS ou partage de position sans ton geste. |
 | **Discrétion** | Sortie rapide, mode camouflage, verrouillage auto, aperçu masqué dans les applis récentes (Android). |
@@ -146,23 +186,25 @@ Détails, limites et obligations RGPD / mineurs : [docs/SECURITE.md](docs/SECURI
 
 ## 🚀 Démarrer en 2 minutes
 
+La CI utilise **Node.js 22**. Google Chrome est requis pour les tests de parcours.
+
 ```bash
 git clone https://github.com/eulogep/mission-better-together.git
 cd mission-better-together
-npm install
+npm ci
 npm run dev            # → http://localhost:5173
 ```
 
 | Commande | Rôle |
 | --- | --- |
 | `npm run check` | Types + tests unitaires + build de production |
-| `npm run test:e2e` | 48 parcours Playwright sur mobile et ordinateur |
-| `npm run preview` | Sert le build (service worker, CSP, hors ligne) |
+| `npm run test:e2e` | Lance les tests Playwright sur les profils mobile et ordinateur |
+| `npm run build` puis `npm run preview` | Lance la prévisualisation locale du build de production, avec CSP et service worker |
 | `npm run mobile:sync` | Build + copie dans les projets Android et iOS |
 | `npm run mobile:android` / `mobile:ios` | Ouvre Android Studio / Xcode |
 
-> Déploiement web : héberger `dist/` en **HTTPS** avec réécriture de toutes les routes vers `/index.html`
-> (l’app utilise de vraies URL comme `/carnet` ou `/lieux`).
+> Pour le déploiement web, héberge `dist/` en **HTTPS** et redirige les routes de l’application vers `/index.html`.
+> Les liens directs incluent `/jardin`, `/entrainement`, `/preparer-conversation`, `/carnet` et `/lieux`.
 
 ## 🧱 Architecture
 
@@ -174,15 +216,15 @@ justifié dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ```
 src/
 ├── app/          routes (URL ↔ écran), navigation par historique, mise en page responsive
-├── features/     carnet (coffre chiffré), info (bibliothèque), specialistes (annuaire)
-├── lib/          logique métier sans interface : vault, device, places, contacts, preferences
+├── features/     carnet, bibliothèque, annuaire, atelier, conversation, arbre intérieur
+├── lib/          coffre, appareil, lieux, contacts, préférences et représentation du ressenti
 ├── screens/      écrans de l’application
 └── data/         contenus versionnés : numéros, fiches sourcées, structures vérifiées
 tests/
-├── unit/         53 tests Vitest (chiffrement, migration, routes, contenus…)
-└── e2e/          48 parcours Playwright (mobile 390×844 + ordinateur 1440×900)
+├── unit/         Vitest (chiffrement, migration, routes, contenus, modèle du ressenti)
+└── e2e/          Playwright (mobile 390×844 et ordinateur 1440×900)
 android/ ios/     projets natifs Capacitor
-docs/             audit, architecture, sécurité, mobile, schéma du futur backend
+docs/             audit, architecture, sécurité, mobile et recherche sur les émotions
 ```
 
 ### Qualité
@@ -190,19 +232,19 @@ docs/             audit, architecture, sécurité, mobile, schéma du futur back
 | Vérification | Résultat |
 | --- | --- |
 | TypeScript strict | ✅ |
-| Tests unitaires (Vitest) | ✅ 53/53 |
-| Parcours (Playwright, build de production) | ✅ 48/48 |
-| Compilation Android (`assembleDebug`) | ✅ |
+| Tests unitaires (Vitest) | ✅ 67/67 |
+| Parcours (Playwright, build de production) | ✅ 74/74 sur les profils mobile et ordinateur |
+| Compilation Android (`assembleDebug`) | [Validation initiale et état des tests sur appareils](docs/MOBILE.md#état-vérifié-20-novembre-2026) |
 | Défilement horizontal à 320 px | ✅ aucun |
 
-Ce que les parcours vérifient : aucun élément de démo, liens profonds et retour, carnet de bout en bout
-(**aucun texte stocké en clair**), SOS maintenu, aucune géolocalisation sans clic, préférences persistées,
-mode discret, sortie rapide, CSP, fonctionnement **hors ligne**.
+La [CI du commit `f011e22`](https://github.com/eulogep/mission-better-together/actions/runs/44789575336) a validé les types, les tests unitaires, le build et les parcours Chrome. Les tests couvrent notamment le carnet chiffré, les liens directs, le mode discret, le fonctionnement hors ligne et la sélection du ressenti au clavier et au pointeur.
 
 ## 🗺️ Feuille de route
 
 - [x] Application web responsive, installable et hors ligne
 - [x] Carnet chiffré, alerte SMS, lieux d’aide, sérénité, bibliothèque, annuaire
+- [x] Récits filtrables, atelier interactif et préparation de conversation
+- [x] Arbre intérieur et grille de représentation du ressenti
 - [x] Projets Android et iOS (Capacitor), APK Android compilé
 - [ ] Tests sur appareils réels (appels, SMS, permissions)
 - [ ] Déverrouillage du carnet par biométrie (Keystore / Keychain)
