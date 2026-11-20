@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env.local
+.env.*.local
+# Secrets : ne jamais committer de clés (ex. ELEVENLABS_API_KEY)
+.env
+# Builds natifs générés
+android/app/build/
+ios/App/Pods/

@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-ubuntu: 'Ubuntu', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-ios: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Rounded', 'Helvetica Neue', sans-serif;
+  }
+
+  html, body {
+    font-family: var(--font-ubuntu);
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+.font-ubuntu {
+  font-family: var(--font-ubuntu);
+}
+
+.font-ios {
+  font-family: var(--font-ios);
+}
+
+/* Masked Figma SVG watermarks so exact vector geometry tints seamlessly per theme */
+.watermark-mask {
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.watermark-call {
+  mask-image: url('/assets/watermark-call.svg');
+  -webkit-mask-image: url('/assets/watermark-call.svg');
+}
+
+.watermark-warning {
+  mask-image: url('/assets/watermark-warning.svg');
+  -webkit-mask-image: url('/assets/watermark-warning.svg');
+}
+
+/* Signature MBT floating phone button shadow */
+.mbt-phone-fab {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22), 0 4px 10px rgba(0, 0, 0, 0.10);
+}
+
+.mbt-phone-fab:active {
+  transform: scale(0.95);
+}
+
+/* Smooth screen enter animation */
+@keyframes screenIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-screen-in {
+  animation: screenIn 220ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes emergencyPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 137, 137, 0.45), 0 14px 36px rgba(0, 0, 0, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 18px rgba(255, 137, 137, 0), 0 14px 36px rgba(0, 0, 0, 0.22);
+  }
+}
+
+.animate-emergency-pulse {
+  animation: emergencyPulse 2s ease-in-out infinite;
+}
+
+/* Subtle scrollbar for scrollable screens */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+/* Carte des lieux sûrs (Leaflet) */
+.mbt-pin {
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--pin);
+  border: 2.5px solid #fff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 150ms ease;
+}
+.mbt-pin svg {
+  transform: rotate(45deg);
+}
+.mbt-pin--selected {
+  border-color: #1d1b20;
+  transform: rotate(-45deg) scale(1.25);
+}
+.mbt-user-dot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+.mbt-user-dot::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: rgba(0, 122, 255, 0.2);
+  animation: mbtUserPulse 2s ease-out infinite;
+}
+.mbt-user-dot span {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #007aff;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+@keyframes mbtUserPulse {
+  from { transform: scale(0.6); opacity: 1; }
+  to { transform: scale(1.6); opacity: 0; }
+}
+.leaflet-container {
+  font-family: var(--font-ubuntu);
+}
+
+/* Toasts */
+@keyframes mbtToastIn {
+  from { opacity: 0; transform: translateY(-14px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+.mbt-toast-in {
+  animation: mbtToastIn 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Transitions directionnelles entre écrans (l'animation propre à chaque écran est neutralisée) */
+.mbt-screen > .animate-screen-in {
+  animation: none;
+}
+@keyframes mbtSlideFromRight {
+  from { opacity: 0; transform: translateX(36px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mbtSlideFromLeft {
+  from { opacity: 0; transform: translateX(-36px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mbtFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.mbt-enter-forward { animation: mbtSlideFromRight 300ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.mbt-enter-back { animation: mbtSlideFromLeft 300ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.mbt-enter-none { animation: mbtFadeUp 260ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Flottement doux (accueil, onboarding) */
+@keyframes mbtFloat {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+  50% { transform: translateY(-8px) rotate(var(--r, 0deg)); }
+}
+.mbt-float { animation: mbtFloat 4.5s ease-in-out infinite; }
+
+/* Sélection d'humeur */
+@keyframes mbtPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1.1); }
+}
+.mbt-pop { animation: mbtPop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Feuille du bas */
+@keyframes mbtSheetIn {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+.mbt-sheet-in { animation: mbtSheetIn 340ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes mbtFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.mbt-fade-in { animation: mbtFadeIn 220ms ease-out both; }
+
+/* Respecte le réglage système « Réduire les animations » */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
