@@ -51,6 +51,16 @@ const TESTIMONIES = [
     voice: 'SxgWu73BS4E8TRj12RH0', // Maxime — jeune homme, naturel
     text: 'Pendant mon stage, les remarques humiliantes devant l’équipe étaient présentées comme de l’humour. Tenir un journal daté des faits et solliciter mon tuteur d’école m’a donné la force de réagir sereinement et légalement.',
   },
+  {
+    id: 'ines',
+    voice: 'mNu8EQcIlFZdOJs7yfhe', // Julia
+    text: 'Dans le groupe de la classe, une blague sur une amie revenait tous les soirs. Elle avait fini par quitter la conversation. Je lui ai écrit en privé : “J’ai vu les messages. Si tu veux, on peut en parler demain.” On s’est retrouvées avant le premier cours. Elle m’a dit qu’elle avait peur d’en parler seule. On est allées voir notre prof principale ensemble.',
+  },
+  {
+    id: 'samir',
+    voice: 'CjIhvq3lIJsoH2c65cKR', // Jules
+    text: 'Quand je lisais à voix haute, des élèves répétaient mes mots en imitant mon accent. Au bout d’un moment, je ne levais plus la main. Un jour après le cours, j’ai attendu que la salle se vide. J’ai présenté à mon prof deux exemples que j’avais notés sur une feuille. Il m’a écouté et on a décidé de se revoir quelques jours après pour faire le point. Ça m’a aidé de savoir quand je pourrais lui reparler.',
+  },
 ];
 
 if (!API_KEY) {

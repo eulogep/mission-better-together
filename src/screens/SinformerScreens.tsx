@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpenText, Building2, ChevronRight, ExternalLink, NotebookPen, Phone, PlayCircle } from 'lucide-react';
+import { BookOpenText, Building2, ChevronRight, ExternalLink, MessagesSquare, NotebookPen, Phone, PlayCircle } from 'lucide-react';
 import { useSerenity } from '../context/SerenityContext';
 import { ScreenShell } from '../components/ScreenShell';
 import { MbtButton } from '../components/MbtButton';
@@ -13,6 +13,8 @@ interface SinformerScreenProps {
   onLibrary: () => void;
   onStructures: () => void;
   onTemoignages: () => void;
+  onPractice: () => void;
+  onPrepareConversation: () => void;
   /** @deprecated SOS dans la navigation */
   onEmergencyCall?: () => void;
 }
@@ -24,6 +26,8 @@ export const SinformerScreen: React.FC<SinformerScreenProps> = ({
   onLibrary,
   onStructures,
   onTemoignages,
+  onPractice,
+  onPrepareConversation,
 }) => {
   const { nightMode } = useSerenity();
   const saved = getSavedProfile();
@@ -32,6 +36,8 @@ export const SinformerScreen: React.FC<SinformerScreenProps> = ({
     { label: 'Comprendre et agir', hint: 'Fiches sourcées : formes, preuves, loi, à qui parler', icon: BookOpenText, color: '#7174AA', onClick: onLibrary },
     { label: 'Structures d’aide', hint: '3018, 119, 3114, Ma Sécurité… coordonnées vérifiées', icon: Building2, color: '#2663FF', onClick: onStructures },
     { label: 'Témoignages', hint: 'Récits illustratifs, lus à voix haute', icon: PlayCircle, color: '#C691C9', onClick: onTemoignages },
+    { label: 'S’entraîner à réagir', hint: 'Comparer des réactions et préparer ses mots', icon: MessagesSquare, color: '#665793', onClick: onPractice },
+    { label: 'Préparer une conversation', hint: 'Écrire, répéter ou montrer ses mots', icon: NotebookPen, color: '#665793', onClick: onPrepareConversation },
   ];
   // Petite étiquette « Toi » sur le profil choisi au premier lancement
   const mine = (id: ProfileId) =>

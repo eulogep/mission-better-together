@@ -417,13 +417,23 @@ export function findServiceKey(phone: string): string | null {
   return n !== 'urgence' && n in EMERGENCY_SERVICES ? n : null;
 }
 
+export const TESTIMONY_THEMES = {
+  ecole: 'À l’école',
+  enLigne: 'En ligne',
+  famille: 'En famille',
+  stage: 'En stage',
+} as const;
+
+export type TestimonyTheme = keyof typeof TESTIMONY_THEMES;
+
 export interface TestimonyItem {
   id: string;
   title: string;
   speaker: string;
   ageLabel: string;
   image: string;
-  category: string;
+  themes: readonly TestimonyTheme[];
+  articleId: string;
   transcriptFr: string[];
   transcriptEn: string[];
 }
@@ -442,7 +452,8 @@ export const TESTIMONIES: TestimonyItem[] = [
     speaker: 'Lina, 14 ans',
     ageLabel: 'Collège',
     image: '/assets/recits/lina.webp',
-    category: 'Harcèlement scolaire',
+    themes: ['ecole', 'enLigne'],
+    articleId: 'je-suis-victime',
     transcriptFr: [
       '« Au début, je pensais que ce n’était que des blagues dans la cour. Puis les moqueries ont continué tous les jours, jusque sur mon téléphone le soir. »',
       '« J’avais peur d’en parler parce que je ne voulais pas inquiéter mes parents. Je gardais tout pour moi et j’avais mal au ventre chaque matin avant d’aller en cours. »',
@@ -462,7 +473,8 @@ export const TESTIMONIES: TestimonyItem[] = [
     speaker: 'Maya, 19 ans',
     ageLabel: 'Université',
     image: '/assets/recits/maya.webp',
-    category: 'Cyberharcèlement',
+    themes: ['enLigne'],
+    articleId: 'cyberharcelement',
     transcriptFr: [
       '« Quand une rumeur a commencé à circuler dans un groupe étudiant, j’ai voulu tout effacer et disparaître des réseaux. »',
       '« Une amie m’a rappelé une règle essentielle : faire des captures d’écran avant de bloquer et signaler. Ce sont ces preuves qui ont permis d’agir vite. »',
@@ -480,7 +492,8 @@ export const TESTIMONIES: TestimonyItem[] = [
     speaker: 'Camille, 11 ans',
     ageLabel: 'Primaire',
     image: '/assets/recits/camille.webp',
-    category: 'Rôle du témoin',
+    themes: ['ecole'],
+    articleId: 'je-suis-temoin',
     transcriptFr: [
       '« À la récréation, je restais toujours près du banc tout seul. Un camarade de CM2 est venu s’asseoir à côté de moi et a prévenu la maîtresse. »',
       '« Parfois, il suffit d’une seule personne qui ne rigole pas avec les autres pour que la peur diminue. »',
@@ -496,7 +509,8 @@ export const TESTIMONIES: TestimonyItem[] = [
     speaker: 'Sophie, maman de Léo',
     ageLabel: 'Parent',
     image: '/assets/recits/sophie.webp',
-    category: 'Parole de parent',
+    themes: ['famille'],
+    articleId: 'parents-reperer-agir',
     transcriptFr: [
       '« Mon fils ne disait rien, mais il dormait mal et refusait soudainement de prendre le bus scolaire. »',
       '« En prenant un moment calme sans jugement, sans lui confisquer son téléphone par punition, il a enfin pu mettre des mots sur ce qu’il subissait. »',
@@ -514,7 +528,8 @@ export const TESTIMONIES: TestimonyItem[] = [
     speaker: 'Nadia, 16 ans',
     ageLabel: 'Lycée',
     image: '/assets/recits/nadia.webp',
-    category: 'Reconstruction',
+    themes: ['ecole'],
+    articleId: 'a-qui-s-adresser',
     transcriptFr: [
       '« Parler avec un psychologue m’a permis de comprendre que ma valeur ne dépendait pas des insultes reçues au lycée. »',
       '« Aujourd’hui, je suis ambassadrice contre le harcèlement dans mon établissement pour aider les plus jeunes. »',
@@ -530,7 +545,8 @@ export const TESTIMONIES: TestimonyItem[] = [
     speaker: 'Théo, 22 ans',
     ageLabel: 'Adulte',
     image: '/assets/recits/theo.webp',
-    category: 'Vie étudiante & pro',
+    themes: ['stage'],
+    articleId: 'garder-des-preuves',
     transcriptFr: [
       '« Pendant mon stage, les remarques humiliantes devant l’équipe étaient présentées comme de l’humour. »',
       '« Tenir un journal daté des faits et solliciter mon tuteur d’école m’a donné la force de réagir sereinement et légalement. »',
@@ -540,7 +556,48 @@ export const TESTIMONIES: TestimonyItem[] = [
       '"Keeping a dated log of incidents and reaching out to my academic advisor gave me the strength to respond calmly and legally."',
     ],
   },
+  {
+    id: 'ines',
+    title: 'J’ai écrit à une amie mise à l’écart',
+    speaker: 'Inès, 15 ans',
+    ageLabel: 'Lycée',
+    image: '/assets/recits/ines.webp',
+    themes: ['ecole', 'enLigne'],
+    articleId: 'je-suis-temoin',
+    transcriptFr: [
+      '« Dans le groupe de la classe, une blague sur une amie revenait tous les soirs. Elle avait fini par quitter la conversation. »',
+      '« Je lui ai écrit en privé : “J’ai vu les messages. Si tu veux, on peut en parler demain.” On s’est retrouvées avant le premier cours. »',
+      '« Elle m’a dit qu’elle avait peur d’en parler seule. On est allées voir notre prof principale ensemble. »',
+    ],
+    transcriptEn: [
+      '"In our class chat, people kept making the same joke about a friend every night. In the end, she left the chat."',
+      '"I sent her a private message: ‘I saw the messages. If you want, we can talk tomorrow.’ We met before our first lesson."',
+      '"She told me she was scared to speak up on her own. We went to see our homeroom teacher together."',
+    ],
+  },
+  {
+    id: 'samir',
+    title: 'Quand les moqueries visent ton accent',
+    speaker: 'Samir, 12 ans',
+    ageLabel: 'Collège',
+    image: '/assets/recits/samir.webp',
+    themes: ['ecole'],
+    articleId: 'je-suis-victime',
+    transcriptFr: [
+      '« Quand je lisais à voix haute, des élèves répétaient mes mots en imitant mon accent. Au bout d’un moment, je ne levais plus la main. »',
+      '« Un jour après le cours, j’ai attendu que la salle se vide. J’ai présenté à mon prof deux exemples que j’avais notés sur une feuille. »',
+      '« Il m’a écouté et on a décidé de se revoir quelques jours après pour faire le point. Ça m’a aidé de savoir quand je pourrais lui reparler. »',
+    ],
+    transcriptEn: [
+      '"When I read aloud, some students would repeat my words and mimic my accent. After a while, I stopped raising my hand."',
+      '"One day after class, I waited until the room was empty. I showed my teacher two examples I had written down on a piece of paper."',
+      '"He listened, and we agreed to check in a few days later. Knowing when I could talk to him again helped."',
+    ],
+  },
 ];
+
+export const testimonyIndices = (theme: TestimonyTheme | null): number[] =>
+  TESTIMONIES.flatMap((item, index) => (theme === null || item.themes.includes(theme) ? [index] : []));
 
 export type ContactGroup = 'Confiance' | 'Aide' | 'Établissement' | 'Autre';
 

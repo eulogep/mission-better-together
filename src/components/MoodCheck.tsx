@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   BellRing,
   BookOpen,
@@ -9,14 +9,14 @@ import {
   MessageCircle,
   NotebookPen,
   Phone,
+  Sprout,
   Sun,
   Wind,
   X,
 } from 'lucide-react';
 import { EMERGENCY_SERVICES } from '../data/content';
 import { vibrate } from '../lib/device';
-
-export type Mood = 'soleil' | 'nuage' | 'pluie' | 'orage';
+import { Mood } from '../lib/mood';
 
 export interface MoodActions {
   onBreathe: () => void;
@@ -24,17 +24,16 @@ export interface MoodActions {
   onJournal: () => void;
   onAlert: () => void;
   onSinformer: () => void;
+  onGarden: () => void;
   onCall: (serviceKey: string) => void;
 }
 
-const MOODS: { key: Mood; label: string; icon: typeof Sun; color: string }[] = [
+export const MOODS: { key: Mood; label: string; icon: typeof Sun; color: string }[] = [
   { key: 'soleil', label: 'Super', icon: Sun, color: '#F5B700' },
   { key: 'nuage', label: 'Bof', icon: Cloud, color: '#8EA2C8' },
   { key: 'pluie', label: 'Pas top', icon: CloudRain, color: '#7174AA' },
   { key: 'orage', label: 'Très mal', icon: CloudLightning, color: '#FF8989' },
 ];
-
-const STORAGE_KEY = 'mbt_mood_v1';
 
 type Suggestion =
   | { kind: 'call'; label: string; serviceKey: string }
@@ -86,30 +85,13 @@ function greeting(): string {
   return 'Salut !';
 }
 
-function loadMood(): Mood | null {
-  try {
-    return (sessionStorage.getItem(STORAGE_KEY) as Mood | null) ?? null;
-  } catch {
-    return null;
-  }
-}
-
 /** Widget « Ta météo du jour ? » : quatre humeurs, une réponse adaptée à chacune. */
-export function useMoodCheck(actions: MoodActions) {
-  const [mood, setMood] = useState<Mood | null>(loadMood);
+export function useMoodCheck(mood: Mood | null, onMood: (mood: Mood) => void, actions: MoodActions) {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (mood) sessionStorage.setItem(STORAGE_KEY, mood);
-    } catch {
-      // ignore
-    }
-  }, [mood]);
 
   const choose = (m: Mood) => {
     vibrate(m === 'orage' ? [20, 40, 20] : 15);
-    setMood(m);
+    onMood(m);
     setOpen(true);
   };
 
@@ -219,6 +201,16 @@ export function useMoodCheck(actions: MoodActions) {
               );
             })}
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              actions.onGarden();
+            }}
+            className="mt-3 inline-flex min-h-11 w-full items-center gap-2.5 rounded-2xl border border-[#c6dcc7] bg-[#edf6e7] px-4 text-left text-sm font-medium text-[#244e3e] cursor-pointer"
+          >
+            <Sprout aria-hidden="true" className="size-5 shrink-0" /> Voir mon arbre intérieur
+          </button>
         </div>
       </div>
     ) : null;

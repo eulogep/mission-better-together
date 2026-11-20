@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { ContactItem, EMERGENCY_SERVICES, findServiceKey } from './data/content';
+import { ContactItem, EMERGENCY_SERVICES, TestimonyTheme, findServiceKey } from './data/content';
 import { SerenityProvider, useSerenity } from './context/SerenityContext';
 import { DiscreetCamouflage } from './components/DiscreetCamouflage';
 import { ToastViewport } from './components/ToastViewport';
@@ -11,6 +11,7 @@ import { useNavigation } from './app/useNavigation';
 import { isOnboarded } from './lib/profile';
 import { dial, isTouchDevice, vibrate } from './lib/device';
 import { usePreferences } from './lib/preferences';
+import { MoodReport, loadSessionMood, saveSessionMood } from './lib/mood';
 import { lockCarnet } from './features/carnet/session';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { AccueilScreen } from './screens/AccueilScreen';
@@ -36,17 +37,39 @@ const StructuresScreen = lazy(() => import('./features/specialistes/StructuresSc
 const StructureScreen = lazy(() => import('./features/specialistes/StructuresScreens').then((m) => ({ default: m.StructureScreen })));
 const TemoignageGridScreen = lazy(() => import('./screens/TemoignagesScreen').then((m) => ({ default: m.TemoignageGridScreen })));
 const TestimonyPlayerScreen = lazy(() => import('./screens/TemoignagesScreen').then((m) => ({ default: m.TestimonyPlayerScreen })));
+const PracticeScreen = lazy(() => import('./features/practice/PracticeScreen').then((m) => ({ default: m.PracticeScreen })));
+const ConversationScreen = lazy(() => import('./features/conversation/ConversationScreen').then((m) => ({ default: m.ConversationScreen })));
+const GardenScreen = lazy(() => import('./features/garden/GardenScreen').then((m) => ({ default: m.GardenScreen })));
 
 const AppContent: React.FC = () => {
   const { discreetMode, exitDiscreetMode } = useSerenity();
   const nav = useNavigation();
-  const { current, push, pop, goHome, openSection } = nav;
+  const { current, push, replace, pop, goHome, openSection } = nav;
   const [showOnboarding, setShowOnboarding] = useState(() => !isOnboarded() && current.name === 'accueil');
+  const [testimonyTheme, setTestimonyTheme] = useState<TestimonyTheme | null>(null);
+  const [mood, setMood] = useState<MoodReport | null>(loadSessionMood);
 
   // Mode discret : l'écran de camouflage remplace tout et le carnet se verrouille
   useEffect(() => {
-    if (discreetMode) lockCarnet();
+    if (discreetMode) {
+      lockCarnet();
+      saveSessionMood(null);
+      setMood(null);
+    }
   }, [discreetMode]);
+
+  useEffect(() => {
+    const restore = (event: PageTransitionEvent) => {
+      if (event.persisted) setMood(loadSessionMood());
+    };
+    window.addEventListener('pageshow', restore);
+    return () => window.removeEventListener('pageshow', restore);
+  }, []);
+
+  const chooseMood = (next: MoodReport | null) => {
+    saveSessionMood(next);
+    setMood(next);
+  };
 
   /**
    * Appel réel : sur téléphone, le composeur s'ouvre (le système demande confirmation).
@@ -82,7 +105,7 @@ const AppContent: React.FC = () => {
   const renderScreen = (): React.ReactNode => {
     switch (current.name) {
       case 'accueil':
-        return <AccueilScreen onNavigate={go} onCall={callService} />;
+        return <AccueilScreen onNavigate={go} onCall={callService} mood={mood} onMood={(value) => chooseMood({ kind: 'quick', mood: value })} />;
 
       case 'a-propos':
         return (
@@ -159,6 +182,8 @@ const AppContent: React.FC = () => {
             onLibrary={() => push({ name: 'articles' })}
             onStructures={() => push({ name: 'specialistes' })}
             onTemoignages={() => push({ name: 'temoignages' })}
+            onPractice={() => push({ name: 'entrainement' })}
+            onPrepareConversation={() => push({ name: 'preparer-conversation' })}
           />
         );
 
@@ -219,9 +244,12 @@ const AppContent: React.FC = () => {
       case 'temoignages':
         return (
           <TemoignageGridScreen
+            themeFilter={testimonyTheme}
+            onFilter={setTestimonyTheme}
             onBack={pop}
             onHome={goHome}
             onSelect={(index) => push({ name: 'temoignage', index })}
+            onPractice={() => push({ name: 'entrainement' })}
             onEmergencyCall={() => callService('urgence')}
           />
         );
@@ -229,12 +257,32 @@ const AppContent: React.FC = () => {
       case 'temoignage':
         return (
           <TestimonyPlayerScreen
-            initialIndex={current.index}
+            selectedIndex={current.index}
+            themeFilter={testimonyTheme}
+            onSelect={(index) => replace({ name: 'temoignage', index })}
+            onOpenArticle={(id) => push({ name: 'article', id })}
+            onOpenPractice={(scenarioId) => push({ name: 'entrainement', scenarioId })}
             onBack={pop}
             onHome={goHome}
             onEmergencyCall={() => callService('urgence')}
           />
         );
+
+      case 'entrainement':
+        return (
+          <PracticeScreen
+            key={current.scenarioId ?? 'list'}
+            scenarioId={current.scenarioId}
+            onOpenScenario={(scenarioId) => push({ name: 'entrainement', scenarioId })}
+            onOpenArticle={(id) => push({ name: 'article', id })}
+            onPrepareConversation={() => push({ name: 'preparer-conversation' })}
+            onBack={pop}
+            onHome={goHome}
+          />
+        );
+
+      case 'preparer-conversation':
+        return <ConversationScreen onBack={pop} />;
 
       case 'contacts':
         return <ContactsScreen onBack={pop} onCallContact={callContact} onAlert={() => push({ name: 'alerte' })} />;
@@ -256,7 +304,18 @@ const AppContent: React.FC = () => {
         return <ChatPsyScreen onBack={pop} onCallService={callService} onOpenSanctuary={() => push({ name: 'serenite' })} />;
 
       case 'serenite':
-        return <SanctuaryScreen onBack={pop} onHome={goHome} />;
+        return <SanctuaryScreen onBack={pop} onHome={goHome} onOpenGarden={() => push({ name: 'jardin' })} />;
+
+      case 'jardin':
+        return (
+          <GardenScreen
+            mood={mood}
+            onMood={chooseMood}
+            onBack={pop}
+            onPrepareConversation={() => push({ name: 'preparer-conversation' })}
+            onFindHelp={() => push({ name: 'specialistes' })}
+          />
+        );
 
       case 'carnet':
         return <CarnetScreen onBack={pop} onHome={goHome} />;

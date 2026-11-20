@@ -1,21 +1,39 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pause, SkipBack, SkipForward, X, Volume2, VolumeX } from 'lucide-react';
+import { BookOpenText, ChevronRight, Languages, MessagesSquare, Pause, Play, SkipBack, SkipForward, X, Volume2, VolumeX } from 'lucide-react';
 import { ScreenShell } from '../components/ScreenShell';
-import { TESTIMONIES, TestimonyItem, testimonyAudioUrl } from '../data/content';
+import { useSerenity } from '../context/SerenityContext';
+import { ARTICLES } from '../data/articles';
+import { TESTIMONIES, TESTIMONY_THEMES, TestimonyTheme, testimonyAudioUrl, testimonyIndices } from '../data/content';
+import { PRACTICE_SCENARIOS } from '../features/practice/scenarios';
+
+const THEME_OPTIONS: [TestimonyTheme | null, string][] = [
+  [null, 'Tous'],
+  ...(Object.entries(TESTIMONY_THEMES) as [TestimonyTheme, string][]),
+];
 
 interface TemoignageGridScreenProps {
+  themeFilter: TestimonyTheme | null;
+  onFilter: (theme: TestimonyTheme | null) => void;
   onBack: () => void;
   onHome: () => void;
   onSelect: (index: number) => void;
+  onPractice: () => void;
   onEmergencyCall: () => void;
 }
 
 export const TemoignageGridScreen: React.FC<TemoignageGridScreenProps> = ({
+  themeFilter,
+  onFilter,
   onBack,
   onHome,
   onSelect,
+  onPractice,
   onEmergencyCall,
 }) => {
+  const { nightMode } = useSerenity();
+  const indices = testimonyIndices(themeFilter);
+  const filterClass = nightMode ? 'bg-white/8 border-white/15 hover:bg-white/15' : 'bg-white/80 border-black/10 hover:bg-white';
+
   return (
     <ScreenShell
       theme="default"
@@ -26,44 +44,73 @@ export const TemoignageGridScreen: React.FC<TemoignageGridScreenProps> = ({
       onPhoneFabClick={onEmergencyCall}
       scrollable
     >
-      <div className="px-7 pt-2 pb-4">
-        {/* Honnêteté : ces récits ne sont pas des témoignages réels */}
-        <div role="note" className="mb-5 rounded-[18px] px-4 py-3 bg-[#FFF8D6] border border-[#E5BE1A]/40 text-[12.5px] leading-snug text-[#5c4a00]">
-          <strong>Récits illustratifs.</strong> Ces histoires sont fictives : elles ont été écrites par l’équipe MBT à
-          partir de situations fréquemment décrites par les services d’écoute. Les prénoms sont inventés. Les images
-          sont générées par IA.
-        </div>
-        <div className="grid grid-cols-2 gap-x-7 gap-y-6">
-          {TESTIMONIES.map((item, idx) => (
+      <div className="px-5 pt-2 pb-4 sm:px-7">
+        <h1 className="font-ubuntu text-[30px] font-bold leading-tight">Récits</h1>
+        <p role="note" className="mt-2 text-[13px] leading-relaxed opacity-80">
+          <strong>Récits illustratifs.</strong> Les histoires et les prénoms sont fictifs. Les images sont générées par IA.
+        </p>
+        <button
+          type="button"
+          onClick={onPractice}
+          className={`mt-4 flex min-h-12 w-full items-center gap-3 rounded-2xl border px-3.5 text-left text-sm font-medium cursor-pointer ${filterClass}`}
+        >
+          <MessagesSquare aria-hidden="true" className="size-5 shrink-0" />
+          <span className="flex-1">S’entraîner à réagir</span>
+          <ChevronRight aria-hidden="true" className="size-4 shrink-0 opacity-60" />
+        </button>
+        <div role="group" aria-label="Filtrer les récits par situation" className="mt-4 mb-3 flex flex-wrap gap-1.5">
+          {THEME_OPTIONS.map(([theme, label]) => (
             <button
-              key={item.id}
+              key={label}
               type="button"
-              onClick={() => onSelect(idx)}
-              className="group relative aspect-[130/193] w-full overflow-hidden rounded-[6px] shadow-[0_6px_18px_rgba(0,0,0,0.14)] bg-[#1f1f24] cursor-pointer hover:scale-[1.03] active:scale-[0.97] transition-all duration-150 text-left"
+              aria-pressed={themeFilter === theme}
+              onClick={() => onFilter(theme)}
+              className={`min-h-9 rounded-full border px-3 text-xs font-medium cursor-pointer ${
+                themeFilter === theme ? 'border-[#ffde53] bg-[#ffde53] text-[#292010]' : filterClass
+              }`}
             >
-              <img
-                src={item.image}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-2.5 pt-8">
-                <span className="inline-block text-[9px] uppercase tracking-wider font-bold text-[#ffde53] mb-0.5">
-                  {item.ageLabel}
-                </span>
-                <p className="text-[11px] leading-[1.25] font-medium text-white line-clamp-2">
-                  {item.title}
-                </p>
-              </div>
+              {label}
             </button>
           ))}
         </div>
+        <p role="status" className="mb-2 text-xs opacity-75">
+          {indices.length} {indices.length === 1 ? 'récit' : 'récits'}
+        </p>
+        <ul aria-label="Récits disponibles" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {indices.map((index) => {
+            const item = TESTIMONIES[index];
+            return (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(index)}
+                  className="group relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#1f1f24] text-left shadow-sm cursor-pointer"
+                >
+                  <img
+                    src={item.image}
+                    alt=""
+                    className="absolute inset-0 size-full object-cover object-[center_36%] motion-safe:transition-transform motion-safe:group-hover:scale-105"
+                  />
+                  <span className="absolute inset-x-0 bottom-0 block bg-gradient-to-t from-black via-black/75 to-transparent px-3 pb-3 pt-9">
+                    <span className="block text-[11px] font-medium text-[#ffde53]">{item.ageLabel}</span>
+                    <span className="mt-0.5 block text-[13px] font-medium leading-tight text-white">{item.title}</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </ScreenShell>
   );
 };
 
 interface TestimonyPlayerScreenProps {
-  initialIndex: number;
+  selectedIndex: number;
+  themeFilter: TestimonyTheme | null;
+  onSelect: (index: number) => void;
+  onOpenArticle: (id: string) => void;
+  onOpenPractice: (id: string) => void;
   onBack: () => void;
   onHome: () => void;
   onEmergencyCall: () => void;
@@ -90,13 +137,22 @@ const readingMs = (line: string) => Math.max(2500, line.split(/\s+/).length * 38
  * téléphone), phrase par phrase, avec sous-titres synchronisés. Mode silencieux = sous-titres seuls.
  */
 export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
-  initialIndex,
+  selectedIndex,
+  themeFilter,
+  onSelect,
+  onOpenArticle,
+  onOpenPractice,
   onBack,
   onHome,
   onEmergencyCall,
 }) => {
-  const [index, setIndex] = useState(initialIndex);
-  const item: TestimonyItem = TESTIMONIES[index] || TESTIMONIES[0];
+  const { nightMode } = useSerenity();
+  const surface = nightMode ? 'bg-white/8 border-white/15 hover:bg-white/15' : 'bg-white/85 border-black/10 hover:bg-white';
+  const index = TESTIMONIES[selectedIndex] ? selectedIndex : 0;
+  const item = TESTIMONIES[index];
+  const article = ARTICLES.find((candidate) => candidate.id === item.articleId);
+  const practice = PRACTICE_SCENARIOS.find((scenario) => scenario.storyId === item.id);
+  const indices = testimonyIndices(themeFilter !== null && item.themes.includes(themeFilter) ? themeFilter : null);
 
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
   const lines = lang === 'fr' ? item.transcriptFr : item.transcriptEn;
@@ -268,13 +324,17 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
     if (useAudio && audio?.duration) audio.currentTime = audio.duration * lineStarts[i];
   };
 
-  const handlePrev = () => setIndex((i) => (i - 1 + TESTIMONIES.length) % TESTIMONIES.length);
-  const handleNext = () => setIndex((i) => (i + 1) % TESTIMONIES.length);
+  const moveStory = (offset: -1 | 1) => {
+    const next = (indices.indexOf(index) + offset + indices.length) % indices.length;
+    setIsPlaying(false);
+    onSelect(indices[next]);
+  };
   const safeLineIdx = Math.min(lineIdx, lines.length - 1);
 
   return (
     <ScreenShell
       theme="default"
+      showBrand={false}
       showBack
       onBack={onBack}
       onBrandClick={onHome}
@@ -309,13 +369,13 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
           </div>
         </div>
 
-        <h2 className="mt-4 max-w-[322px] text-center font-ubuntu font-medium text-[15px] leading-snug text-[#1d1b20]">
+        <h1 className="mt-4 max-w-[322px] text-center font-ubuntu font-medium text-base leading-snug">
           {item.title}
-        </h2>
+        </h1>
 
         {/* Progression : un segment par phrase, cliquable */}
         <div className="w-full max-w-[270px] mt-3">
-          <div className="flex gap-1.5 h-5 items-center">
+          <div className="flex gap-1.5 h-7 items-center">
             {lines.map((_, i) => (
               <button
                 key={i}
@@ -326,13 +386,13 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
               >
                 <span
                   className={`w-full h-[4px] rounded-full transition-colors ${
-                    i < safeLineIdx || (i === safeLineIdx && (isPlaying || ended)) ? 'bg-[#1e1e1e]' : 'bg-[#787878]/40 group-hover:bg-[#787878]/60'
+                    i < safeLineIdx || (i === safeLineIdx && (isPlaying || ended)) ? 'bg-current' : 'bg-current/25 group-hover:bg-current/45'
                   }`}
                 />
               </button>
             ))}
           </div>
-          <div className="flex justify-between text-[11px] font-medium text-[#9a9a9a] -mt-0.5">
+          <div className="flex justify-between text-xs font-medium opacity-75">
             <span>
               Partie {safeLineIdx + 1}/{lines.length}
             </span>
@@ -349,68 +409,86 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
         </div>
 
         {/* Commandes + transcription & langue */}
-        <div className="relative w-full max-w-[310px] mt-3 flex items-center justify-center gap-8">
+        <div className="mt-3 flex items-center justify-center gap-6">
           <button
             type="button"
-            onClick={handlePrev}
+            onClick={() => moveStory(-1)}
+            disabled={indices.length === 1}
             aria-label="Témoignage précédent"
-            className="p-2 text-[#1d1b20] hover:opacity-70 active:scale-90 transition cursor-pointer"
+            className="p-2 hover:opacity-70 active:scale-90 transition cursor-pointer disabled:cursor-default disabled:opacity-25"
           >
-            <SkipBack className="w-9 h-9 fill-[#1d1b20]" />
+            <SkipBack className="w-9 h-9 fill-current" />
           </button>
 
           <button
             type="button"
             onClick={togglePlay}
             aria-label={isPlaying ? 'Pause' : 'Lire'}
-            className="w-[54px] h-[54px] flex items-center justify-center text-[#1d1b20] hover:scale-105 active:scale-90 transition cursor-pointer"
+            className="flex size-14 items-center justify-center rounded-full bg-[#ffde53] text-[#292010] hover:bg-[#f8ce36] cursor-pointer"
           >
             {isPlaying ? (
-              <Pause className="w-11 h-11" strokeWidth={2.4} />
+              <Pause aria-hidden="true" className="size-7 fill-current" />
             ) : (
-              <img src="/assets/icon-play.svg" alt="" className="w-[46px] h-[46px]" />
+              <Play aria-hidden="true" className="size-7 fill-current" />
             )}
           </button>
 
           <button
             type="button"
-            onClick={handleNext}
+            onClick={() => moveStory(1)}
+            disabled={indices.length === 1}
             aria-label="Témoignage suivant"
-            className="p-2 text-[#1d1b20] hover:opacity-70 active:scale-90 transition cursor-pointer"
+            className="p-2 hover:opacity-70 active:scale-90 transition cursor-pointer disabled:cursor-default disabled:opacity-25"
           >
-            <SkipForward className="w-9 h-9 fill-[#1d1b20]" />
+            <SkipForward className="w-9 h-9 fill-current" />
           </button>
-
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowTranscript((s) => !s)}
-              title="Afficher la transcription complète"
-              aria-label="Transcription"
-              aria-expanded={showTranscript}
-              className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center gap-[5px] transition cursor-pointer ${
-                showTranscript ? 'bg-black text-white' : 'hover:bg-black/5 text-black'
-              }`}
-            >
-              <span className="w-5 h-[2.5px] bg-current rounded-full" />
-              <span className="w-5 h-[2.5px] bg-current rounded-full" />
-              <span className="w-5 h-[2.5px] bg-current rounded-full" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setLang((l) => (l === 'fr' ? 'en' : 'fr'))}
-              title={`Langue : ${lang.toUpperCase()}`}
-              aria-label="Changer la langue"
-              className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-black/5 active:scale-90 transition cursor-pointer"
-            >
-              <img src="/assets/icon-translate.svg" alt="" className="w-7 h-7" />
-              <span className="absolute -bottom-1 -right-1 text-[9px] font-bold px-1 rounded bg-[#1d1b20] text-white uppercase">
-                {lang}
-              </span>
-            </button>
-          </div>
         </div>
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowTranscript((s) => !s)}
+            aria-expanded={showTranscript}
+            className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3 text-xs font-medium cursor-pointer ${surface}`}
+          >
+            <BookOpenText aria-hidden="true" className="size-4" /> Transcription
+          </button>
+          <button
+            type="button"
+            onClick={() => setLang((l) => (l === 'fr' ? 'en' : 'fr'))}
+            aria-label={`Changer la langue, actuellement ${lang === 'fr' ? 'français' : 'anglais'}`}
+            className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full border px-3 text-xs font-medium cursor-pointer ${surface}`}
+          >
+            <Languages aria-hidden="true" className="size-4" /> {lang.toUpperCase()}
+          </button>
+        </div>
+        {article && (
+          <button
+            type="button"
+            onClick={() => onOpenArticle(article.id)}
+            className={`mt-4 flex w-full max-w-[322px] items-center gap-3 rounded-2xl border p-3.5 text-left cursor-pointer ${surface}`}
+          >
+            <BookOpenText aria-hidden="true" className="size-5 shrink-0" />
+            <span className="flex-1">
+              <span className="block text-xs opacity-75">Fiche pratique</span>
+              <span className="block text-sm font-medium leading-snug">{article.title}</span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-4 shrink-0 opacity-60" />
+          </button>
+        )}
+        {practice && (
+          <button
+            type="button"
+            onClick={() => onOpenPractice(practice.id)}
+            className={`mt-2 flex w-full max-w-[322px] items-center gap-3 rounded-2xl border p-3.5 text-left cursor-pointer ${surface}`}
+          >
+            <MessagesSquare aria-hidden="true" className="size-5 shrink-0" />
+            <span className="flex-1">
+              <span className="block text-xs opacity-75">Essayer la situation</span>
+              <span className="block text-sm font-medium leading-snug">{practice.title}</span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-4 shrink-0 opacity-60" />
+          </button>
+        )}
       </div>
 
       {/* Transcription complète */}

@@ -64,6 +64,15 @@ export function useNavigation() {
   /** Ouvre un écran par-dessus l'écran courant. */
   const push = useCallback((route: Route) => go([...navRef.current.mbtStack, route]), [go]);
 
+  /** Change la page courante sans ajouter d'étape au bouton retour. */
+  const replace = useCallback((route: Route) => {
+    const current = navRef.current;
+    const next = { ...current, mbtStack: [...current.mbtStack.slice(0, -1), route] };
+    window.history.replaceState(next, '', routeToPath(route));
+    setDirection('none');
+    setNav(next);
+  }, []);
+
   /** Ouvre une rubrique principale (onglets) : Accueil puis la rubrique. */
   const openSection = useCallback(
     (route: Route) => {
@@ -92,6 +101,7 @@ export function useNavigation() {
     direction,
     setDirection,
     push,
+    replace,
     openSection,
     pop,
     goHome,

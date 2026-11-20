@@ -44,7 +44,7 @@ const SIDE_ITEMS: NavItem[] = [
     label: 'S’informer',
     route: { name: 'sinformer' },
     icon: BookOpen,
-    match: (r) => ['sinformer', 'articles', 'article', 'profil', 'conseils', 'conseil'].includes(r.name),
+    match: (r) => ['sinformer', 'articles', 'article', 'profil', 'conseils', 'conseil', 'entrainement', 'preparer-conversation'].includes(r.name),
   },
   {
     label: 'Structures d’aide',
@@ -53,7 +53,7 @@ const SIDE_ITEMS: NavItem[] = [
     match: (r) => r.name === 'specialistes' || r.name === 'specialiste' || r.name === 'assistant',
   },
   { label: 'Récits', route: { name: 'temoignages' }, icon: PlayCircle, match: (r) => r.name.startsWith('temoignage') },
-  { label: 'Sérénité', route: { name: 'serenite' }, icon: Wind, match: (r) => r.name === 'serenite' },
+  { label: 'Sérénité', route: { name: 'serenite' }, icon: Wind, match: (r) => r.name === 'serenite' || r.name === 'jardin' },
   { label: 'Carnet', route: { name: 'carnet' }, icon: NotebookPen, match: (r) => r.name === 'carnet' },
 ];
 

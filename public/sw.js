@@ -2,7 +2,7 @@
  * Service worker MBT : rend l'application disponible hors ligne (numéros d'urgence,
  * conseils, contacts, journal). Les cartes et API externes restent en ligne uniquement.
  */
-const CACHE = 'mbt-v5';
+const CACHE = 'mbt-v11';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -22,6 +22,12 @@ const PRECACHE = [
   '/assets/recits/sophie.webp',
   '/assets/recits/nadia.webp',
   '/assets/recits/theo.webp',
+  '/assets/recits/ines.webp',
+  '/assets/recits/samir.webp',
+  '/assets/jardin/ramure.webp',
+  '/assets/jardin/floraison.webp',
+  '/assets/jardin/pluie.webp',
+  '/assets/jardin/orage.webp',
 ];
 
 self.addEventListener('install', (event) => {

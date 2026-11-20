@@ -23,11 +23,14 @@ export type Route =
   | { name: 'lieux'; theme?: ThemeKey }
   | { name: 'temoignages' }
   | { name: 'temoignage'; index: number }
+  | { name: 'entrainement'; scenarioId?: string }
+  | { name: 'preparer-conversation' }
   | { name: 'contacts' }
   | { name: 'specialistes' }
   | { name: 'specialiste'; id: string }
   | { name: 'assistant' }
   | { name: 'serenite' }
+  | { name: 'jardin' }
   | { name: 'carnet' }
   | { name: 'appel'; serviceKey: string; customName?: string; customPhone?: string };
 
@@ -71,6 +74,10 @@ export function routeToPath(r: Route): string {
       return '/temoignages';
     case 'temoignage':
       return `/temoignages/${r.index}`;
+    case 'entrainement':
+      return r.scenarioId ? `/entrainement/${encodeURIComponent(r.scenarioId)}` : '/entrainement';
+    case 'preparer-conversation':
+      return '/preparer-conversation';
     case 'contacts':
       return '/contacts';
     case 'specialistes':
@@ -81,6 +88,8 @@ export function routeToPath(r: Route): string {
       return '/assistant';
     case 'serenite':
       return '/serenite';
+    case 'jardin':
+      return '/jardin';
     case 'carnet':
       return '/carnet';
     case 'appel':
@@ -125,6 +134,10 @@ export function pathToRoute(pathname: string, search = ''): Route | null {
     case 'temoignages':
       if (!b) return { name: 'temoignages' };
       return /^\d+$/.test(b) ? { name: 'temoignage', index: Number(b) } : null;
+    case 'entrainement':
+      return b ? { name: 'entrainement', scenarioId: b } : { name: 'entrainement' };
+    case 'preparer-conversation':
+      return b ? null : { name: 'preparer-conversation' };
     case 'contacts':
       return { name: 'contacts' };
     case 'specialistes':
@@ -133,6 +146,8 @@ export function pathToRoute(pathname: string, search = ''): Route | null {
       return { name: 'assistant' };
     case 'serenite':
       return { name: 'serenite' };
+    case 'jardin':
+      return b ? null : { name: 'jardin' };
     case 'carnet':
       return { name: 'carnet' };
     case 'appel':
@@ -157,10 +172,13 @@ export function sectionOf(r: Route): Section {
     case 'conseil':
     case 'temoignages':
     case 'temoignage':
+    case 'entrainement':
+    case 'preparer-conversation':
     case 'specialistes':
     case 'specialiste':
       return 'sinformer';
     case 'serenite':
+    case 'jardin':
       return 'serenite';
     case 'carnet':
       return 'carnet';

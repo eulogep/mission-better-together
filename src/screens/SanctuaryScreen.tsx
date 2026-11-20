@@ -9,6 +9,7 @@ import {
   Play,
   RotateCcw,
   Sparkles,
+  Sprout,
   Timer,
   VolumeX,
   Volume2,
@@ -24,6 +25,7 @@ import { vibrate } from '../lib/device';
 interface SanctuaryScreenProps {
   onBack: () => void;
   onHome: () => void;
+  onOpenGarden: () => void;
   /** @deprecated SOS dans la navigation */
   onEmergencyCall?: () => void;
 }
@@ -115,7 +117,7 @@ interface Ripple {
   hue: string;
 }
 
-export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ onBack, onHome }) => {
+export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ onBack, onHome, onOpenGarden }) => {
   const { nightMode, soundLevels, setSoundLevel, applyPreset, stopAllSounds } = useSerenity();
   const prefs = usePreferences();
   const systemReduced = useReducedMotion();
@@ -292,6 +294,16 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ onBack, onHome
             Prends une pause, à ton rythme.
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={onOpenGarden}
+          className={`mx-auto inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-medium cursor-pointer ${
+            nightMode ? 'border-[#719985]/40 bg-[#20342e] text-[#e5f5e9]' : 'border-[#c6dcc7] bg-[#edf6e7] text-[#244e3e] hover:bg-[#e5f4df]'
+          }`}
+        >
+          <Sprout aria-hidden="true" className="size-4" /> Voir mon arbre intérieur
+        </button>
 
         {/* 4-Pill Tab Selector */}
         <div
