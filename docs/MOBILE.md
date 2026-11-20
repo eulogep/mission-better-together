@@ -48,5 +48,9 @@ Commandes équivalentes : `npm run mobile:sync`, `npm run mobile:android`, `npm 
 
 ## État vérifié (20 novembre 2026)
 
-- Projet Android généré et configuré. Compilation : voir le README (résultat de `./gradlew assembleDebug`).
+- **Android : compilation vérifiée.** `./gradlew assembleDebug` (JDK 21, SDK 36) produit `app-debug.apk` (6,8 Mo),
+  package `fr.missionbettertogether.mbt`, minSdk 24, targetSdk 36 ; l'APK contient l'application web et les permissions
+  attendues (INTERNET, localisation, vibration). **Non exécuté** sur appareil ou émulateur (aucun émulateur installé).
+  Note : compilation vérifiée avec un JDK 21 (`JAVA_HOME`). Gradle 8.14 ne prend pas officiellement en charge les JDK
+  plus récents : si le JDK par défaut est plus récent, pointer `JAVA_HOME` vers un JDK 21.
 - Projet iOS généré (Swift Package Manager) ; **non compilé** : Xcode n'est pas installé sur la machine de développement.

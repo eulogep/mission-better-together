@@ -11,7 +11,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "mobile:sync": "npm run build && cap sync",
+    "mobile:android": "cap open android",
+    "mobile:ios": "cap open ios",
+    "check": "npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.2",

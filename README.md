@@ -1,78 +1,135 @@
 # MBT — Mission Better Together
 
-Application web mobile (installable, utilisable hors ligne) d'aide, d'alerte et d'information
-contre le harcèlement. React 19 + TypeScript + Vite + Tailwind CSS 4, sans serveur.
+Application de prévention et d'accompagnement contre le harcèlement scolaire : web responsive (mobile et
+ordinateur), installable, utilisable hors ligne, et empaquetée pour Android et iOS avec Capacitor.
 
-## Lancer le projet
+**Principe :** rien n'est simulé. Chaque action a un effet réel et vérifiable (appel via le téléphone, SMS
+préparé dans l'appli SMS, carte OpenStreetMap, carnet chiffré sur l'appareil), ou est explicitement présentée
+comme non disponible. Aucune donnée n'est envoyée à un serveur MBT : il n'en existe pas.
+
+> État : **base de production en cours**, pas « production ready ». Voir [Limites](#limites-connues) et
+> [docs/SECURITE.md](docs/SECURITE.md) avant toute mise en ligne publique.
+
+## Démarrer
 
 ```bash
 npm install
-npm run dev       # http://localhost:5173
-npm run build     # vérification TypeScript + build de production dans dist/
-npm run preview   # sert le build de production (active le mode hors ligne)
+npm run dev          # http://localhost:5173 (sans service worker)
+npm run check        # types + tests unitaires + build de production
+npm run test:e2e     # 48 parcours Playwright (Chrome installé requis)
+npm run preview      # sert dist/ (service worker, CSP, mode hors ligne)
 ```
 
-Pour tester sur un téléphone : `npm run dev` puis ouvrir l'adresse « Network » affichée, sur le même Wi-Fi.
-La géolocalisation demande HTTPS (ou `localhost`) : en production, héberger le dossier `dist/` sur un
-hébergement HTTPS (Netlify, Vercel, GitHub Pages…).
+La géolocalisation et le chiffrement exigent HTTPS (ou `localhost`). Pour la production web : héberger `dist/`
+sur un hébergement HTTPS avec **réécriture de toutes les routes vers `/index.html`** (l'app utilise de vraies URL :
+`/carnet`, `/lieux`, `/sinformer/articles/…`).
 
 ## Fonctionnalités
 
-| Fonction | Comment ça marche |
-| --- | --- |
-| **Appels** | Un appui ouvre le composeur du téléphone (`tel:`). L'écran d'appel propose aussi le SMS au 114 et le tchat des services qui en ont un. |
-| **Alerter mes proches** | SMS pré-rempli avec la position GPS envoyé aux personnes de confiance (`sms:`), ou partage via WhatsApp, Messenger, etc. |
-| **Lieux sûrs** | Vraie carte OpenStreetMap (Leaflet) : police, pharmacies, hôpitaux autour de la position ou d'une ville cherchée, itinéraire à pied dans l'appli de cartes. |
-| **Journal de preuves** | Faits datés, lieu, auteurs, témoins, captures d'écran ; export d'un rapport HTML (imprimable en PDF). |
-| **Contacts** | Numéros d'aide nationaux + personnes de confiance ajoutées à la main ou importées du téléphone (Android). |
-| **Chat** | Assistant d'orientation automatique (mots-clés) + liens vers de vrais écoutants (3018, Fil Santé Jeunes, 3114). |
-| **Témoignages** | Voix réalistes ElevenLabs (fichiers MP3, une voix par témoin) avec sous-titres synchronisés ; repli automatique sur la voix du téléphone si le fichier manque ; sous-titres FR/EN, mode silencieux. |
-| **Météo du jour** | Sur l'accueil : 4 humeurs (soleil → orage) ; chaque réponse propose des actions adaptées (respirer, tchat 3018, 3114, prévenir un proche). |
-| **Respire avec moi** | Respiration guidée 4-2-6 (bulle animée + vibrations) et exercice d'ancrage 5-4-3-2-1 interactif, puis « Comment tu te sens ? ». |
-| **Bouton d'appel** | Maintenir appuyé ~1 s (anneau de progression) pour éviter les appels accidentels ; appel direct au clavier / lecteur d'écran. |
-| **Premier lancement** | 3 écrans : bienvenue, confidentialité (sortie rapide, bouton maintenu), choix du profil, ajout d'un proche. Accès « Urgence » à chaque étape. |
-| **Sortie rapide** | Quitte instantanément vers un site neutre et efface la conversation en cours. |
-| **PWA** | Installable, raccourcis d'icône (Alerter, Lieux sûrs, Journal), fonctionne hors ligne. |
+| Module | Ce qui fonctionne réellement | Limites |
+| --- | --- | --- |
+| **Accueil** | Tableau de bord vers tous les services, météo d'humeur avec suggestions adaptées | — |
+| **Navigation** | URL par écran, liens profonds, bouton retour du téléphone, onglets (mobile), barre latérale (ordinateur) | — |
+| **SOS** | Appui maintenu ~1 s → composeur du téléphone sur le **112** ; appel direct au clavier/lecteur d'écran | MBT n'opère aucun service d'urgence (c'est écrit) |
+| **Urgence** | Parcours victime/témoin, numéros officiels, SMS au **114** pré-rempli | — |
+| **Alerte SMS** | Message prêt dans l'appli SMS du téléphone pour une ou plusieurs personnes de confiance ; position ajoutée **seulement sur demande** ; état « préparé » distinct d'« envoyé » | Pas d'envoi automatique : nécessite un fournisseur SMS + backend (voir ci-dessous) |
+| **Contacts** | Ajouter, modifier, supprimer, importer (Android Chrome), appeler | Stockés en clair sur l'appareil (accès en urgence sans code) |
+| **Carnet protégé** | Coffre AES-GCM 256 (clé dérivée du code, PBKDF2 600 000 itérations), auto-enregistrement, recherche, filtres, étiquettes, pièces jointes chiffrées, export de rapport, changement de code, effacement total, verrouillage auto, migration des anciennes notes en clair, mode « lâcher prise » (rien n'est enregistré) | Code oublié = données perdues (par conception) |
+| **Sérénité** | 3 respirations guidées, durées (1/3/5/10 min ou libre), pause/reprise, ancrage 5-4-3-2-1, galet zen, 4 ambiances sonores **générées en direct** (Web Audio, aucun fichier sous licence), volume général et coupure, mode nuit, option « sans animation », préférences sauvegardées | Vibrations indisponibles sur iOS (API web) |
+| **S'informer** | 8 fiches **sourcées et datées** (sources officielles vérifiées le 20/11/2026), recherche, catégories ; conseils par profil | Contenu à faire relire par un professionnel avant diffusion large |
+| **Lieux d'aide** | Carte OpenStreetMap (Leaflet), police/gendarmerie, pharmacies, hôpitaux via Nominatim (repli Overpass), recherche de ville (IGN), itinéraire à pied dans l'appli de cartes ; géolocalisation **uniquement sur action** | Données OSM non vérifiées par MBT (indiqué) ; quotas des serveurs publics |
+| **Structures d'aide** | Annuaire de 15 structures réelles (3018, 119, 3114, 114, Ma Sécurité, France Victimes 116 006, Pharos…), recherche, filtres, fiches avec canaux vérifiés et date de vérification ; assistant d'orientation automatique clairement étiqueté | Aucun professionnel individuel ni rendez-vous (aucun n'a été inventé) |
+| **Récits** | 6 récits lus à voix haute, sous-titres FR/EN, **marqués comme fictifs** | Soumission de témoignages : non disponible (nécessite backend + modération, conçu dans `docs/`) |
+| **Discrétion** | Sortie rapide vers une page neutre, mode discret (fausse page de révisions + verrouillage du carnet), double Échap | — |
+| **Hors ligne** | Service worker : toute l'application (écrans chargés à la demande inclus) disponible sans réseau | Carte et recherche de lieux nécessitent le réseau |
 
-## Voix des témoignages (ElevenLabs)
+## Architecture
 
-Les voix sont générées une seule fois puis servies comme fichiers statiques (`public/audio/`) :
-l'application n'appelle jamais ElevenLabs et ne contient aucune clé.
+React 19 + TypeScript strict + Vite 6 + Tailwind CSS 4, framer-motion, Leaflet, Capacitor 8.
+Choix détaillé (web + Capacitor plutôt que React Native) : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-```bash
-ELEVENLABS_API_KEY=votre_cle npm run voices   # crée public/audio/temoignage-<id>-fr.mp3
-npm run build
+```
+src/app/        routes (URL ↔ écran), navigation (historique), mise en page responsive
+src/features/   carnet (coffre + écrans), info (bibliothèque), specialistes (annuaire)
+src/lib/        logique métier sans interface : vault (crypto), device (tel/sms/GPS), places, contacts, preferences, toast
+src/screens/    écrans issus du prototype, rendus fonctionnels
+src/data/       contenus versionnés : numéros, articles sourcés, structures vérifiées
+tests/unit/     Vitest (53 tests)        tests/e2e/   Playwright (48 parcours, mobile + ordinateur)
+android/ ios/   projets natifs Capacitor  docs/        audit, architecture, sécurité, mobile, schéma backend
 ```
 
-- Voix et textes : `scripts/generate-voices.mjs` (une voix française par témoin ; `--force` pour tout régénérer).
-- Coût indicatif : ~2 000 crédits pour les 6 témoignages en français.
-- La clé se crée sur https://elevenlabs.io/app/settings/api-keys — ne la partagez pas et ne la mettez pas dans le code.
+## Environnements
 
-## Services externes utilisés (gratuits, sans clé)
+| Mode | Fichier | Service worker | CSP |
+| --- | --- | --- | --- |
+| développement | `.env.development` | non | non (rechargement à chaud) |
+| test | `.env.test` | non | — |
+| production | `.env.production` | oui | stricte (injectée au build) |
 
-- Tuiles de carte : OpenStreetMap (`tile.openstreetmap.org`)
-- Lieux : Nominatim (OpenStreetMap), avec Overpass en secours
-- Recherche de ville : Géoplateforme IGN / API Adresse
+Aucun secret dans ces fichiers ni dans le code client. Secrets locaux éventuels : `.env.local` (ignoré par Git), voir `.env.example`.
 
-La position n'est envoyée qu'à ces services pour trouver les lieux proches. Les contacts et le journal
-restent uniquement sur l'appareil (localStorage / IndexedDB).
+## Services externes
 
-Pour un usage à grande échelle, prévoir un serveur de tuiles et de recherche dédié : les serveurs
-publics d'OpenStreetMap limitent le nombre de requêtes.
+| Service | Usage | Coût | Données envoyées |
+| --- | --- | --- | --- |
+| OpenStreetMap (tuiles) | Fond de carte | Gratuit (politique d'usage) | Zone affichée |
+| Nominatim / Overpass | Lieux proches | Gratuit (quotas) | Position approximative, **après accord** |
+| Géoplateforme IGN | Recherche de ville | Gratuit | Texte saisi |
+| ElevenLabs | Voix des récits (génération hors ligne, `npm run voices`) | Payant | Textes des récits, depuis le poste du développeur |
 
-## Structure
+### Envoi de SMS automatique (non intégré)
 
-| Dossier | Contenu |
+Un navigateur ou une WebView ne peut pas envoyer un SMS sans action de l'utilisateur. Pour un envoi automatique
+il faudrait : un backend (clé du fournisseur côté serveur uniquement), un fournisseur (Brevo, OVHcloud SMS, Twilio…),
+la vérification du numéro de l'expéditeur, une limitation anti-abus, et le consentement explicite des destinataires.
+Coût par SMS et cadre légal à valider : **non engagé**. L'app reste honnête : elle prépare le message, l'utilisateur l'envoie.
+
+### Témoignages des utilisateurs (non intégré)
+
+Conçu mais non déployé : API + PostgreSQL, soumission privée, anonymisation, double validation humaine avant
+publication, journal d'audit sans contenu sensible. Schéma : [docs/backend-schema.sql](docs/backend-schema.sql).
+
+## Applications mobiles
+
+Projets `android/` et `ios/` générés. **Android : APK de débogage compilé et vérifié** ; iOS : projet généré, non
+compilé (Xcode absent). Procédure, permissions et checklist des stores : [docs/MOBILE.md](docs/MOBILE.md).
+
+```bash
+npm run mobile:sync      # build + copie dans les projets natifs
+npm run mobile:android   # ouvre Android Studio
+npm run mobile:ios       # ouvre Xcode
+```
+
+## Tests (dernier passage)
+
+| Suite | Résultat |
 | --- | --- |
-| `src/App.tsx` | Navigation (pile d'écrans synchronisée avec l'historique du navigateur), raccourcis, cadre desktop |
-| `src/screens/` | Un fichier par écran |
-| `src/components/` | `ScreenShell`, `MbtButton`, `QuickExitBar`, `PlacesMap` |
-| `src/lib/` | `device` (appel, SMS, GPS), `places` (lieux réels), `contacts`, `journal` (IndexedDB + export) |
-| `src/data/content.ts` | Contenus : conseils par profil, numéros d'urgence, liens officiels, témoignages |
-| `public/` | Images, icônes, `manifest.webmanifest`, `sw.js` (mode hors ligne) |
+| `npm run typecheck` | OK |
+| `npm test` (Vitest) | 53/53 |
+| `npm run test:e2e` (Playwright, build de production, mobile 390×844 + ordinateur 1440×900) | 48/48 |
+| Compilation Android `assembleDebug` | OK |
 
-## Numéros utiles (France)
+Les parcours couvrent notamment : absence d'éléments de démo, liens profonds et retour, carnet (création du code,
+auto-enregistrement, verrouillage, mauvais code, persistance, **vérification qu'aucun texte n'est stocké en clair**,
+migration), SOS maintenu, alerte (aucune géolocalisation sans clic), lieux (carte réelle avec données simulées),
+préférences sérénité persistées, bibliothèque et annuaire, mode discret, sortie rapide, CSP, hors ligne,
+absence de défilement horizontal à 320 et 768 px.
 
-3018 (harcèlement & cyberharcèlement) · 3020 (harcèlement scolaire) · 3114 (prévention du suicide) ·
-119 (enfance en danger) · 0 800 235 236 (Fil Santé Jeunes) · 3919 (violences femmes info) ·
-17 (police) · 15 (SAMU) · 112 (urgence européenne) · 114 (urgence par SMS)
+## Limites connues
+
+- Pas de backend : pas de comptes, pas de synchronisation, pas de modération, pas d'envoi SMS automatique.
+- Code de carnet court = résistance limitée face à une copie du stockage (phrase de passe conseillée à l'écran).
+- Tests sur appareils réels (appels, SMS, permissions, iOS) **non réalisés** à ce stade.
+- Contenus (fiches, conseils, récits) à faire relire par des professionnels de l'enfance et un juriste.
+- Obligations RGPD / protection des mineurs à évaluer avant toute collecte : voir [docs/SECURITE.md](docs/SECURITE.md).
+
+## Voix des récits (ElevenLabs)
+
+`ELEVENLABS_API_KEY=… npm run voices` génère `public/audio/temoignage-<id>-fr.mp3` (voix et textes dans
+`scripts/generate-voices.mjs`). Sans fichier, le lecteur utilise la voix de synthèse du téléphone.
+
+## Numéros utiles (France — vérifiés le 20/11/2026)
+
+3018 harcèlement et cyberharcèlement (7j/7, 9h–23h, numéro unique) · 119 enfance en danger (24h/24) ·
+3114 prévention du suicide (24h/24) · 116 006 aide aux victimes (7j/7, 9h–20h) · 0 800 235 236 Fil Santé Jeunes ·
+3919 violences femmes info · 17 police · 15 SAMU · 112 urgence européenne · 114 urgence par SMS

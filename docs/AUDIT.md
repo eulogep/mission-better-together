@@ -55,3 +55,26 @@ Branche de travail : `feature/application-reelle` (point de départ : commit `1b
 
 Réutilisable tel quel : charte (ScreenShell, MbtButton), lib `device` (tel/sms/GPS), `places` (Nominatim/Overpass), `contacts`, export du journal, sortie rapide, service worker.
 À refondre : `App.tsx` (coque, routage), stockage du journal (chiffrement), écran Spécialistes, contenus S'informer.
+
+---
+
+## 6. Après transformation (20 novembre 2026, branche `feature/application-reelle`)
+
+| Fonctionnalité | Résultat | Preuve |
+|---|---|---|
+| Accueil | Tableau de bord réel, plus de démo | e2e `navigation.spec` (absence « Explorer les écrans », largeur réelle) |
+| Navigation | URL par écran, retour, onglets mobile / barre latérale desktop | e2e liens profonds + retour ; unit `routes` (22 allers-retours) |
+| Sérénité | Durées, préférences persistées, volume/coupure, sans animation, sons générés | e2e `Sérénité` (persistance après rechargement) |
+| Carnet | Coffre chiffré, auto-enregistrement, recherche, migration, export, effacement | unit `vault`/`carnet` ; e2e « aucun texte en clair » |
+| Alerte SMS | Position sur consentement, « préparé » ≠ « envoyé » | e2e : 0 appel GPS avant clic, lien `sms:` vérifié |
+| Urgence | 112 honnête, quiz 1/3, SMS 114 | e2e SOS maintenu + texte « MBT n’opère aucun service d’urgence » |
+| S'informer | 8 fiches sourcées/datées + recherche | unit (sources HTTPS, dates) ; e2e recherche + sources |
+| Lieux | Géoloc à la demande, définition explicite, carte réelle | e2e : 0 marqueur avant action, 3 après (données simulées) |
+| Témoignages | Marqués fictifs ; soumission non proposée (backend requis) | e2e « Récits illustratifs » ; `docs/backend-schema.sql` |
+| Contacts | Modifier ajouté | e2e ajout → modification → appel |
+| Spécialistes | Annuaire de 15 structures vérifiées, filtres, fiches | unit (canaux valides) ; e2e filtres + fiche 3018 |
+| Appel 3018 | Fiche vérifiée (tél., tchat, WhatsApp/Messenger/appli via e-Enfance), non-affiliation | e2e fiche 3018 |
+| Mobile | Projets Capacitor Android/iOS ; APK debug compilé | `docs/MOBILE.md` |
+
+Restent ouverts : backend (témoignages, SMS automatique), tests sur appareils réels, compilation iOS, relecture
+professionnelle des contenus, évaluation RGPD/mineurs avant toute collecte.

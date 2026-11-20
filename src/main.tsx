@@ -14,8 +14,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>
 );
 
-// Mode hors ligne (uniquement en production, pour ne pas gêner le développement)
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+// Mode hors ligne : activé par l'environnement (production), désactivé en développement et en test
+if (import.meta.env.VITE_ENABLE_SW === 'true' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')
