@@ -1,147 +1,251 @@
-# MBT — Mission Better Together
+<p align="center">
+  <img src="docs/banner.svg" alt="MBT — Mission Better Together" width="100%">
+</p>
 
-Application de prévention et d'accompagnement contre le harcèlement scolaire : web responsive (mobile et
-ordinateur), installable, utilisable hors ligne, et empaquetée pour Android et iOS avec Capacitor.
+<p align="center">
+  <b>Une application gratuite, privée et sans compte pour agir contre le harcèlement scolaire.</b><br>
+  Alerter un proche · Trouver de l’aide · Garder des preuves chiffrées · Respirer quand tout déborde.
+</p>
 
-**Principe :** rien n'est simulé. Chaque action a un effet réel et vérifiable (appel via le téléphone, SMS
-préparé dans l'appli SMS, carte OpenStreetMap, carnet chiffré sur l'appareil), ou est explicitement présentée
-comme non disponible. Aucune donnée n'est envoyée à un serveur MBT : il n'en existe pas.
+<p align="center">
+  <a href="https://github.com/eulogep/mission-better-together/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/eulogep/mission-better-together/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-7174AA"></a>
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white">
+  <img alt="TypeScript strict" src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white">
+  <img alt="Vite 6" src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white">
+  <img alt="Capacitor 8" src="https://img.shields.io/badge/Capacitor-Android%20%7C%20iOS-119EFF?logo=capacitor&logoColor=white">
+  <img alt="PWA hors ligne" src="https://img.shields.io/badge/PWA-hors%20ligne-00C492">
+  <img alt="Zéro traceur" src="https://img.shields.io/badge/traceurs-0-FF8989">
+</p>
 
-> État : **base de production en cours**, pas « production ready ». Voir [Limites](#limites-connues) et
-> [docs/SECURITE.md](docs/SECURITE.md) avant toute mise en ligne publique.
+<p align="center">
+  <a href="#-aperçu">Aperçu</a> ·
+  <a href="#-fonctionnalités">Fonctionnalités</a> ·
+  <a href="#-vie-privée-par-conception">Vie privée</a> ·
+  <a href="#-démarrer-en-2-minutes">Démarrer</a> ·
+  <a href="#-architecture">Architecture</a> ·
+  <a href="#-feuille-de-route">Feuille de route</a> ·
+  <a href="#-contribuer">Contribuer</a>
+</p>
 
-## Démarrer
+---
+
+> **En danger maintenant ?** Appelle le **17** (police) ou le **112**. Si tu ne peux pas parler, envoie un **SMS au 114**.
+> Harcèlement ou cyberharcèlement : **3018**, gratuit et anonyme, 7j/7 de 9h à 23h.
+
+## 💛 Pourquoi MBT ?
+
+En France, le harcèlement scolaire est un délit depuis la loi du 2 mars 2022. Pourtant, au moment où ça arrive,
+une victime ou un témoin se pose toujours les mêmes questions : *à qui parler ? qui appeler ? comment prouver ?
+comment tenir le coup ?*
+
+**MBT répond à ces quatre questions dans une seule application**, pensée pour un ado qui a peur que quelqu’un
+regarde son écran :
+
+- 🫥 **Discrète** — sortie rapide en un appui, mode camouflage en fausse page de révisions.
+- 🔐 **Privée** — pas de compte, pas de serveur, pas de traceur. Le carnet est chiffré sur le téléphone.
+- 🧭 **Honnête** — chaque numéro et chaque lien est vérifié et daté. Rien n’est simulé, aucune fausse promesse.
+- 📴 **Toujours là** — fonctionne hors ligne, sur mobile comme sur ordinateur, installable sur Android et iOS.
+
+## 📱 Aperçu
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/accueil.png" width="230" alt="Accueil"><br><sub><b>Accueil</b> — tout en un coup d’œil</sub></td>
+    <td align="center"><img src="docs/screenshots/carnet.png" width="230" alt="Carnet chiffré"><br><sub><b>Carnet</b> — chiffré AES-256 sur l’appareil</sub></td>
+    <td align="center"><img src="docs/screenshots/lieux.png" width="230" alt="Lieux d’aide"><br><sub><b>Lieux d’aide</b> — vraie carte OpenStreetMap</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/serenite.png" width="230" alt="Sérénité"><br><sub><b>Sérénité</b> — respiration guidée et sons</sub></td>
+    <td align="center"><img src="docs/screenshots/meteo.png" width="230" alt="Météo du jour"><br><sub><b>Météo du jour</b> — une réponse adaptée à ton état</sub></td>
+    <td align="center"><img src="docs/screenshots/structure-3018.png" width="230" alt="Structure 3018"><br><sub><b>Structures d’aide</b> — coordonnées vérifiées</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/desktop.png" width="90%" alt="Version ordinateur"><br>
+  <sub>Version ordinateur : une vraie interface responsive, pas un téléphone dessiné au milieu de l’écran.</sub>
+</p>
+
+## ✨ Fonctionnalités
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🚨 Urgence
+- **SOS 112** au centre de la navigation : *maintenir appuyé* une seconde (anneau de progression) pour éviter les appels dans la poche.
+- Parcours guidé **victime / témoin** (« La victime est-elle blessée ? »…).
+- **SMS au 114** pré-rempli quand on ne peut pas parler, position ajoutée sur demande.
+
+</td>
+<td width="50%" valign="top">
+
+### 📲 Prévenir un proche
+- SMS prêt à envoyer à tes **personnes de confiance**, une ou plusieurs.
+- Position GPS ajoutée **uniquement si tu appuies** sur le bouton.
+- L’app dit « message préparé », jamais « envoyé » : c’est toi qui envoies.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🔐 Carnet protégé
+- Chaque note et chaque capture **chiffrées en AES-GCM 256**, clé dérivée de ton code (PBKDF2, 600 000 itérations).
+- Enregistrement automatique, recherche, étiquettes, pièces jointes, **export d’un rapport daté** pour l’école ou une plainte.
+- Verrouillage automatique, délai après 5 essais, mode **« Lâcher prise »** (écrire puis tout laisser partir).
+
+</td>
+<td valign="top">
+
+### 🌿 Sérénité
+- 3 respirations guidées (cohérence 5-5, 4-7-8, carrée) avec **durées** de 1 à 10 min.
+- Ancrage **5-4-3-2-1** interactif, galet zen.
+- 4 ambiances (pluie, océan, brise, nappe) **générées en direct** par Web Audio : aucun fichier, aucune licence.
+- Mode nuit, volume général, option **sans animation**, préférences mémorisées.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🗺️ Lieux d’aide
+- Commissariats, pharmacies, hôpitaux autour de toi sur une **vraie carte OpenStreetMap**.
+- Recherche par ville, horaires traduits en français, **itinéraire à pied** dans ton appli de cartes.
+- Géolocalisation **seulement sur action**, jamais en continu.
+
+</td>
+<td valign="top">
+
+### 📚 S’informer
+- **8 fiches sourcées et datées** : formes du harcèlement, cyberharcèlement, preuves, la loi, parents, pros…
+- **Annuaire de 15 structures réelles** (3018, 119, 3114, Ma Sécurité, 116 006, Pharos…), filtres par type et public.
+- Conseils adaptés à l’âge : primaire, collège/lycée, adulte, parent.
+
+</td>
+</tr>
+</table>
+
+Et aussi : **météo d’humeur** sur l’accueil, contacts d’urgence (ajout, modification, import Android), récits
+illustratifs lus à voix haute (clairement **marqués fictifs**), assistant d’orientation automatique, accueil du
+premier lancement en 3 étapes, transitions directionnelles, raccourcis d’icône (« Alerter », « Lieux », « Carnet »).
+
+## 🔒 Vie privée par conception
+
+| | |
+|---|---|
+| **Aucun compte, aucun serveur MBT** | Il n’existe pas de base de données où tes informations pourraient fuiter. |
+| **Carnet chiffré** | Sans ton code, personne ne peut le lire, pas même les développeurs. Un test automatique vérifie qu’aucun texte n’est stocké en clair. |
+| **Zéro traceur** | Pas d’analyse d’audience, pas de publicité, police auto-hébergée (aucune requête vers Google). |
+| **Rien d’automatique** | Aucun appel, SMS ou partage de position sans ton geste. |
+| **Discrétion** | Sortie rapide, mode camouflage, verrouillage auto, aperçu masqué dans les applis récentes (Android). |
+| **CSP stricte** | En production, seuls les services réellement utilisés (OpenStreetMap, IGN) sont autorisés. |
+
+Détails, limites et obligations RGPD / mineurs : [docs/SECURITE.md](docs/SECURITE.md).
+
+## 🚀 Démarrer en 2 minutes
 
 ```bash
+git clone https://github.com/eulogep/mission-better-together.git
+cd mission-better-together
 npm install
-npm run dev          # http://localhost:5173 (sans service worker)
-npm run check        # types + tests unitaires + build de production
-npm run test:e2e     # 48 parcours Playwright (Chrome installé requis)
-npm run preview      # sert dist/ (service worker, CSP, mode hors ligne)
+npm run dev            # → http://localhost:5173
 ```
 
-La géolocalisation et le chiffrement exigent HTTPS (ou `localhost`). Pour la production web : héberger `dist/`
-sur un hébergement HTTPS avec **réécriture de toutes les routes vers `/index.html`** (l'app utilise de vraies URL :
-`/carnet`, `/lieux`, `/sinformer/articles/…`).
-
-## Fonctionnalités
-
-| Module | Ce qui fonctionne réellement | Limites |
-| --- | --- | --- |
-| **Accueil** | Tableau de bord vers tous les services, météo d'humeur avec suggestions adaptées | — |
-| **Navigation** | URL par écran, liens profonds, bouton retour du téléphone, onglets (mobile), barre latérale (ordinateur) | — |
-| **SOS** | Appui maintenu ~1 s → composeur du téléphone sur le **112** ; appel direct au clavier/lecteur d'écran | MBT n'opère aucun service d'urgence (c'est écrit) |
-| **Urgence** | Parcours victime/témoin, numéros officiels, SMS au **114** pré-rempli | — |
-| **Alerte SMS** | Message prêt dans l'appli SMS du téléphone pour une ou plusieurs personnes de confiance ; position ajoutée **seulement sur demande** ; état « préparé » distinct d'« envoyé » | Pas d'envoi automatique : nécessite un fournisseur SMS + backend (voir ci-dessous) |
-| **Contacts** | Ajouter, modifier, supprimer, importer (Android Chrome), appeler | Stockés en clair sur l'appareil (accès en urgence sans code) |
-| **Carnet protégé** | Coffre AES-GCM 256 (clé dérivée du code, PBKDF2 600 000 itérations), auto-enregistrement, recherche, filtres, étiquettes, pièces jointes chiffrées, export de rapport, changement de code, effacement total, verrouillage auto, migration des anciennes notes en clair, mode « lâcher prise » (rien n'est enregistré) | Code oublié = données perdues (par conception) |
-| **Sérénité** | 3 respirations guidées, durées (1/3/5/10 min ou libre), pause/reprise, ancrage 5-4-3-2-1, galet zen, 4 ambiances sonores **générées en direct** (Web Audio, aucun fichier sous licence), volume général et coupure, mode nuit, option « sans animation », préférences sauvegardées | Vibrations indisponibles sur iOS (API web) |
-| **S'informer** | 8 fiches **sourcées et datées** (sources officielles vérifiées le 20/11/2026), recherche, catégories ; conseils par profil | Contenu à faire relire par un professionnel avant diffusion large |
-| **Lieux d'aide** | Carte OpenStreetMap (Leaflet), police/gendarmerie, pharmacies, hôpitaux via Nominatim (repli Overpass), recherche de ville (IGN), itinéraire à pied dans l'appli de cartes ; géolocalisation **uniquement sur action** | Données OSM non vérifiées par MBT (indiqué) ; quotas des serveurs publics |
-| **Structures d'aide** | Annuaire de 15 structures réelles (3018, 119, 3114, 114, Ma Sécurité, France Victimes 116 006, Pharos…), recherche, filtres, fiches avec canaux vérifiés et date de vérification ; assistant d'orientation automatique clairement étiqueté | Aucun professionnel individuel ni rendez-vous (aucun n'a été inventé) |
-| **Récits** | 6 récits lus à voix haute, sous-titres FR/EN, **marqués comme fictifs** | Soumission de témoignages : non disponible (nécessite backend + modération, conçu dans `docs/`) |
-| **Discrétion** | Sortie rapide vers une page neutre, mode discret (fausse page de révisions + verrouillage du carnet), double Échap | — |
-| **Hors ligne** | Service worker : toute l'application (écrans chargés à la demande inclus) disponible sans réseau | Carte et recherche de lieux nécessitent le réseau |
-
-## Architecture
-
-React 19 + TypeScript strict + Vite 6 + Tailwind CSS 4, framer-motion, Leaflet, Capacitor 8.
-Choix détaillé (web + Capacitor plutôt que React Native) : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-```
-src/app/        routes (URL ↔ écran), navigation (historique), mise en page responsive
-src/features/   carnet (coffre + écrans), info (bibliothèque), specialistes (annuaire)
-src/lib/        logique métier sans interface : vault (crypto), device (tel/sms/GPS), places, contacts, preferences, toast
-src/screens/    écrans issus du prototype, rendus fonctionnels
-src/data/       contenus versionnés : numéros, articles sourcés, structures vérifiées
-tests/unit/     Vitest (53 tests)        tests/e2e/   Playwright (48 parcours, mobile + ordinateur)
-android/ ios/   projets natifs Capacitor  docs/        audit, architecture, sécurité, mobile, schéma backend
-```
-
-## Environnements
-
-| Mode | Fichier | Service worker | CSP |
-| --- | --- | --- | --- |
-| développement | `.env.development` | non | non (rechargement à chaud) |
-| test | `.env.test` | non | — |
-| production | `.env.production` | oui | stricte (injectée au build) |
-
-Aucun secret dans ces fichiers ni dans le code client. Secrets locaux éventuels : `.env.local` (ignoré par Git), voir `.env.example`.
-
-## Services externes
-
-| Service | Usage | Coût | Données envoyées |
-| --- | --- | --- | --- |
-| OpenStreetMap (tuiles) | Fond de carte | Gratuit (politique d'usage) | Zone affichée |
-| Nominatim / Overpass | Lieux proches | Gratuit (quotas) | Position approximative, **après accord** |
-| Géoplateforme IGN | Recherche de ville | Gratuit | Texte saisi |
-| ElevenLabs | Voix des récits (génération hors ligne, `npm run voices`) | Payant | Textes des récits, depuis le poste du développeur |
-
-### Envoi de SMS automatique (non intégré)
-
-Un navigateur ou une WebView ne peut pas envoyer un SMS sans action de l'utilisateur. Pour un envoi automatique
-il faudrait : un backend (clé du fournisseur côté serveur uniquement), un fournisseur (Brevo, OVHcloud SMS, Twilio…),
-la vérification du numéro de l'expéditeur, une limitation anti-abus, et le consentement explicite des destinataires.
-Coût par SMS et cadre légal à valider : **non engagé**. L'app reste honnête : elle prépare le message, l'utilisateur l'envoie.
-
-### Témoignages des utilisateurs (non intégré)
-
-Conçu mais non déployé : API + PostgreSQL, soumission privée, anonymisation, double validation humaine avant
-publication, journal d'audit sans contenu sensible. Schéma : [docs/backend-schema.sql](docs/backend-schema.sql).
-
-## Applications mobiles
-
-Projets `android/` et `ios/` générés. **Android : APK de débogage compilé et vérifié** ; iOS : projet généré, non
-compilé (Xcode absent). Procédure, permissions et checklist des stores : [docs/MOBILE.md](docs/MOBILE.md).
-
-```bash
-npm run mobile:sync      # build + copie dans les projets natifs
-npm run mobile:android   # ouvre Android Studio
-npm run mobile:ios       # ouvre Xcode
-```
-
-## Tests (dernier passage)
-
-| Suite | Résultat |
+| Commande | Rôle |
 | --- | --- |
-| `npm run typecheck` | OK |
-| `npm test` (Vitest) | 53/53 |
-| `npm run test:e2e` (Playwright, build de production, mobile 390×844 + ordinateur 1440×900) | 48/48 |
-| Compilation Android `assembleDebug` | OK |
+| `npm run check` | Types + tests unitaires + build de production |
+| `npm run test:e2e` | 48 parcours Playwright sur mobile et ordinateur |
+| `npm run preview` | Sert le build (service worker, CSP, hors ligne) |
+| `npm run mobile:sync` | Build + copie dans les projets Android et iOS |
+| `npm run mobile:android` / `mobile:ios` | Ouvre Android Studio / Xcode |
 
-Les parcours couvrent notamment : absence d'éléments de démo, liens profonds et retour, carnet (création du code,
-auto-enregistrement, verrouillage, mauvais code, persistance, **vérification qu'aucun texte n'est stocké en clair**,
-migration), SOS maintenu, alerte (aucune géolocalisation sans clic), lieux (carte réelle avec données simulées),
-préférences sérénité persistées, bibliothèque et annuaire, mode discret, sortie rapide, CSP, hors ligne,
-absence de défilement horizontal à 320 et 768 px.
+> Déploiement web : héberger `dist/` en **HTTPS** avec réécriture de toutes les routes vers `/index.html`
+> (l’app utilise de vraies URL comme `/carnet` ou `/lieux`).
 
-## Limites connues
+## 🧱 Architecture
 
-- Pas de backend : pas de comptes, pas de synchronisation, pas de modération, pas d'envoi SMS automatique.
-- Code de carnet court = résistance limitée face à une copie du stockage (phrase de passe conseillée à l'écran).
-- Tests sur appareils réels (appels, SMS, permissions, iOS) **non réalisés** à ce stade.
-- Contenus (fiches, conseils, récits) à faire relire par des professionnels de l'enfance et un juriste.
-- Obligations RGPD / protection des mineurs à évaluer avant toute collecte : voir [docs/SECURITE.md](docs/SECURITE.md).
+**React 19 · TypeScript strict · Vite 6 · Tailwind CSS 4 · framer-motion · Leaflet · Capacitor 8**
 
-## Voix des récits (ElevenLabs)
+Une seule base de code pour le web, Android et iOS. Le choix (web + Capacitor plutôt que React Native) est
+justifié dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-`ELEVENLABS_API_KEY=… npm run voices` génère `public/audio/temoignage-<id>-fr.mp3` (voix et textes dans
-`scripts/generate-voices.mjs`). Sans fichier, le lecteur utilise la voix de synthèse du téléphone.
+```
+src/
+├── app/          routes (URL ↔ écran), navigation par historique, mise en page responsive
+├── features/     carnet (coffre chiffré), info (bibliothèque), specialistes (annuaire)
+├── lib/          logique métier sans interface : vault, device, places, contacts, preferences
+├── screens/      écrans de l’application
+└── data/         contenus versionnés : numéros, fiches sourcées, structures vérifiées
+tests/
+├── unit/         53 tests Vitest (chiffrement, migration, routes, contenus…)
+└── e2e/          48 parcours Playwright (mobile 390×844 + ordinateur 1440×900)
+android/ ios/     projets natifs Capacitor
+docs/             audit, architecture, sécurité, mobile, schéma du futur backend
+```
 
-## Numéros utiles (France — vérifiés le 20/11/2026)
+### Qualité
 
-3018 harcèlement et cyberharcèlement (7j/7, 9h–23h, numéro unique) · 119 enfance en danger (24h/24) ·
-3114 prévention du suicide (24h/24) · 116 006 aide aux victimes (7j/7, 9h–20h) · 0 800 235 236 Fil Santé Jeunes ·
-3919 violences femmes info · 17 police · 15 SAMU · 112 urgence européenne · 114 urgence par SMS
+| Vérification | Résultat |
+| --- | --- |
+| TypeScript strict | ✅ |
+| Tests unitaires (Vitest) | ✅ 53/53 |
+| Parcours (Playwright, build de production) | ✅ 48/48 |
+| Compilation Android (`assembleDebug`) | ✅ |
+| Défilement horizontal à 320 px | ✅ aucun |
 
-## Licence
+Ce que les parcours vérifient : aucun élément de démo, liens profonds et retour, carnet de bout en bout
+(**aucun texte stocké en clair**), SOS maintenu, aucune géolocalisation sans clic, préférences persistées,
+mode discret, sortie rapide, CSP, fonctionnement **hors ligne**.
 
-Code source sous licence [MIT](LICENSE) — © 2026 Eulogep.
+## 🗺️ Feuille de route
 
-Composants tiers (conservent leur propre licence) : police Ubuntu (Ubuntu Font Licence 1.0), Leaflet (BSD-2-Clause),
-React, Vite, Tailwind CSS, framer-motion, lucide-react et Capacitor (MIT). Données cartographiques
-© contributeurs OpenStreetMap (ODbL, attribution affichée sur la carte). Les numéros et liens officiels cités
-appartiennent à leurs organismes respectifs ; MBT n'est affilié à aucun d'eux.
+- [x] Application web responsive, installable et hors ligne
+- [x] Carnet chiffré, alerte SMS, lieux d’aide, sérénité, bibliothèque, annuaire
+- [x] Projets Android et iOS (Capacitor), APK Android compilé
+- [ ] Tests sur appareils réels (appels, SMS, permissions)
+- [ ] Déverrouillage du carnet par biométrie (Keystore / Keychain)
+- [ ] Relecture des contenus par des professionnels de l’enfance
+- [ ] Voix enregistrées pour les récits ([script prêt](scripts/generate-voices.mjs))
+- [ ] Backend modéré pour les témoignages ([schéma conçu](docs/backend-schema.sql))
+- [ ] Publication sur Google Play et l’App Store ([checklist](docs/MOBILE.md))
 
-Avertissement : MBT ne remplace ni les services d'urgence ni un accompagnement professionnel.
-En cas de danger, appeler le 17 ou le 112 (SMS au 114 si impossible de parler).
+## 🤝 Contribuer
+
+Les contributions sont les bienvenues, qu’elles soient du code, des contenus ou de l’accessibilité.
+Lis [CONTRIBUTING.md](CONTRIBUTING.md) avant de commencer. Deux règles d’or :
+
+1. **Rien de simulé** : une fonctionnalité fait ce qu’elle annonce, ou dit clairement qu’elle n’est pas disponible.
+2. **La sécurité des utilisateurs passe avant tout** : pas de collecte, pas d’action automatique, sources officielles pour tout numéro ou conseil.
+
+Une idée, un bug, un numéro qui a changé ? Ouvre une [issue](https://github.com/eulogep/mission-better-together/issues).
+
+## ☎️ Numéros utiles (France — vérifiés le 20/11/2026)
+
+| Situation | Numéro |
+| --- | --- |
+| Danger immédiat | **17** police · **15** SAMU · **112** urgence européenne · **114** par SMS |
+| Harcèlement, cyberharcèlement | **3018** — 7j/7, 9h–23h, aussi par tchat, WhatsApp, Messenger |
+| Enfant en danger | **119** — 24h/24 |
+| Idées suicidaires | **3114** — 24h/24 |
+| Victime d’une infraction | **116 006** — 7j/7, 9h–20h |
+| Jeunes 12–25 ans | **0 800 235 236** — Fil Santé Jeunes |
+| Violences sexistes et sexuelles | **3919** — 24h/24 |
+
+MBT n’est affilié à aucun de ces services et ne remplace ni les secours ni un accompagnement professionnel.
+
+## 📄 Licence
+
+Code sous licence [MIT](LICENSE) — © 2026 Eulogep.
+
+Composants tiers sous leur propre licence : police Ubuntu (Ubuntu Font Licence 1.0), Leaflet (BSD-2-Clause),
+React, Vite, Tailwind CSS, framer-motion, lucide-react, Capacitor (MIT). Données cartographiques
+© contributeurs OpenStreetMap (ODbL).
+
+---
+
+<p align="center">
+  <b>Si MBT peut aider quelqu’un autour de toi, laisse une ⭐ et partage le projet.</b><br>
+  <sub>Chaque étoile rend l’application plus visible pour les écoles, les associations et les familles.</sub>
+</p>

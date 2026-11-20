@@ -46,7 +46,7 @@ const BREATH_PATTERNS: BreathPattern[] = [
   {
     id: 'coherence',
     name: 'Cohérence 5-5',
-    subtitle: 'Équilibre le cœur en 3 min',
+    subtitle: 'Respiration lente et régulière, pour ralentir',
     phases: [
       { label: 'Inspire', hint: 'Doucement par le nez', seconds: 5, scale: 1.38 },
       { label: 'Expire', hint: 'Relâche les épaules', seconds: 5, scale: 0.78 },
@@ -55,7 +55,7 @@ const BREATH_PATTERNS: BreathPattern[] = [
   {
     id: '478',
     name: '4-7-8 Calme',
-    subtitle: 'Apaise une montée d’angoisse',
+    subtitle: 'Expiration longue, quand l’angoisse monte',
     phases: [
       { label: 'Inspire', hint: 'Calme et profond', seconds: 4, scale: 1.38 },
       { label: 'Retiens', hint: 'Tout est paisible', seconds: 7, scale: 1.38 },
@@ -65,7 +65,7 @@ const BREATH_PATTERNS: BreathPattern[] = [
   {
     id: 'box',
     name: 'Carrée 4-4-4-4',
-    subtitle: 'Recentrer l’esprit rapidement',
+    subtitle: 'Rythme carré, pour se recentrer',
     phases: [
       { label: 'Inspire', hint: 'Remplis tes poumons', seconds: 4, scale: 1.35 },
       { label: 'Pause', hint: 'Reste présent·e', seconds: 4, scale: 1.35 },
@@ -289,7 +289,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ onBack, onHome
             Espace Sérénité
           </h1>
           <p className={`text-[12.5px] mt-0.5 ${nightMode ? 'text-[#a3a9c4]' : 'text-[#6c6e85]'}`}>
-            Prends une pause. Ici, tu es en sécurité.
+            Prends une pause, à ton rythme.
           </p>
         </div>
 

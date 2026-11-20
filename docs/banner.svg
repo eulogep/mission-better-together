@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="MBT — Mission Better Together">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF8D6"/>
+      <stop offset="0.55" stop-color="#F6F2FF"/>
+      <stop offset="1" stop-color="#EAFBF5"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFDE53" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FFDE53" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#C691C9" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#C691C9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="420" rx="36" fill="url(#bg)"/>
+  <circle cx="1080" cy="80" r="260" fill="url(#glowA)"/>
+  <circle cx="160" cy="380" r="240" fill="url(#glowB)"/>
+
+  <!-- filigranes de la charte -->
+  <g fill="none" stroke="#FFDE53" stroke-opacity="0.55" stroke-width="10" stroke-linejoin="round">
+    <path d="M1010 120 l70 -40 l80 20 l40 70 l-20 80 l-70 40 l-80 -20 l-40 -70 z" transform="rotate(12 1100 160)"/>
+  </g>
+  <path d="M1150 330 c-22 -30 -70 -18 -70 20 c0 30 40 55 70 80 c30 -25 70 -50 70 -80 c0 -38 -48 -50 -70 -20 z" fill="none" stroke="#FF8989" stroke-opacity="0.5" stroke-width="8"/>
+
+  <!-- marque -->
+  <g font-family="Ubuntu, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <path d="M118 96 c-12 -16 -38 -10 -38 11 c0 16 22 30 38 43 c16 -13 38 -27 38 -43 c0 -21 -26 -27 -38 -11 z" fill="#FF8989" transform="translate(320 40)"/>
+    <text x="78" y="250" font-size="150" font-weight="700" fill="#1d1b20" letter-spacing="-3">MBT</text>
+    <text x="84" y="300" font-size="34" font-weight="500" fill="#7174AA">Mission Better Together</text>
+    <text x="84" y="350" font-size="25" fill="#4a4a5a">Agir contre le harcèlement scolaire : alerter, s’informer, s’apaiser, garder des preuves.</text>
+  </g>
+
+  <!-- pastilles façon boutons MBT -->
+  <g font-family="Ubuntu, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="500" text-anchor="middle">
+    <g transform="translate(760 150) rotate(-5)">
+      <rect x="-110" y="-34" width="220" height="68" rx="26" fill="#fff" stroke="#FF8989" stroke-width="6"/>
+      <text y="9" fill="#FF8989">URGENCE</text>
+    </g>
+    <g transform="translate(1010 235) rotate(4)">
+      <rect x="-120" y="-34" width="240" height="68" rx="26" fill="#fff" stroke="#7174AA" stroke-width="6"/>
+      <text y="9" fill="#7174AA">S’INFORMER</text>
+    </g>
+    <g transform="translate(730 280) rotate(-2)">
+      <rect x="-110" y="-34" width="220" height="68" rx="26" fill="#fff" stroke="#00C492" stroke-width="6"/>
+      <text y="9" fill="#00A884">SÉRÉNITÉ</text>
+    </g>
+    <g transform="translate(1110 110)">
+      <circle r="42" fill="#FF5B5B"/>
+      <path d="M-14 -16 c2 -3 6 -3 8 0 l5 7 c2 3 1 6 -1 8 l-3 3 c3 7 9 13 16 16 l3 -3 c2 -2 5 -3 8 -1 l7 5 c3 2 3 6 0 8 l-4 4 c-5 5 -13 5 -19 1 c-12 -8 -21 -17 -29 -29 c-4 -6 -4 -14 1 -19 z" fill="#fff" transform="translate(-2 2)"/>
+    </g>
+  </g>
+</svg>
