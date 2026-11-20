@@ -133,3 +133,15 @@ absence de défilement horizontal à 320 et 768 px.
 3018 harcèlement et cyberharcèlement (7j/7, 9h–23h, numéro unique) · 119 enfance en danger (24h/24) ·
 3114 prévention du suicide (24h/24) · 116 006 aide aux victimes (7j/7, 9h–20h) · 0 800 235 236 Fil Santé Jeunes ·
 3919 violences femmes info · 17 police · 15 SAMU · 112 urgence européenne · 114 urgence par SMS
+
+## Licence
+
+Code source sous licence [MIT](LICENSE) — © 2026 Eulogep.
+
+Composants tiers (conservent leur propre licence) : police Ubuntu (Ubuntu Font Licence 1.0), Leaflet (BSD-2-Clause),
+React, Vite, Tailwind CSS, framer-motion, lucide-react et Capacitor (MIT). Données cartographiques
+© contributeurs OpenStreetMap (ODbL, attribution affichée sur la carte). Les numéros et liens officiels cités
+appartiennent à leurs organismes respectifs ; MBT n'est affilié à aucun d'eux.
+
+Avertissement : MBT ne remplace ni les services d'urgence ni un accompagnement professionnel.
+En cas de danger, appeler le 17 ou le 112 (SMS au 114 si impossible de parler).
