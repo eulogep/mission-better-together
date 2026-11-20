@@ -30,7 +30,8 @@ export const TemoignageGridScreen: React.FC<TemoignageGridScreenProps> = ({
         {/* Honnêteté : ces récits ne sont pas des témoignages réels */}
         <div role="note" className="mb-5 rounded-[18px] px-4 py-3 bg-[#FFF8D6] border border-[#E5BE1A]/40 text-[12.5px] leading-snug text-[#5c4a00]">
           <strong>Récits illustratifs.</strong> Ces histoires sont fictives : elles ont été écrites par l’équipe MBT à
-          partir de situations fréquemment décrites par les services d’écoute. Les prénoms sont inventés.
+          partir de situations fréquemment décrites par les services d’écoute. Les prénoms sont inventés. Les images
+          sont générées par IA.
         </div>
         <div className="grid grid-cols-2 gap-x-7 gap-y-6">
           {TESTIMONIES.map((item, idx) => (
@@ -41,8 +42,8 @@ export const TemoignageGridScreen: React.FC<TemoignageGridScreenProps> = ({
               className="group relative aspect-[130/193] w-full overflow-hidden rounded-[6px] shadow-[0_6px_18px_rgba(0,0,0,0.14)] bg-[#1f1f24] cursor-pointer hover:scale-[1.03] active:scale-[0.97] transition-all duration-150 text-left"
             >
               <img
-                src={item.thumbnail}
-                alt={item.title}
+                src={item.image}
+                alt=""
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-2.5 pt-8">
@@ -282,7 +283,7 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
       <div className="px-7 mt-3 flex flex-col items-center">
         {/* Visuel (Figma 334x334, rounded-[27px], border-[10px] border-white) */}
         <div className="relative w-full max-w-[322px] aspect-square rounded-[27px] border-[10px] border-white shadow-[0_14px_34px_rgba(0,0,0,0.14)] overflow-hidden bg-[#1e1e1e]">
-          <img src={item.cover} alt="" className="w-full h-full object-cover" />
+          <img src={item.image} alt="" className="w-full h-full object-cover object-[center_35%]" />
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
             <span className="px-2.5 py-1 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-medium truncate">
               Récit fictif · {item.speaker}

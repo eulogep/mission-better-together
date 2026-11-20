@@ -422,8 +422,7 @@ export interface TestimonyItem {
   title: string;
   speaker: string;
   ageLabel: string;
-  thumbnail: string;
-  cover: string;
+  image: string;
   category: string;
   transcriptFr: string[];
   transcriptEn: string[];
@@ -442,8 +441,7 @@ export const TESTIMONIES: TestimonyItem[] = [
     title: '« Il s’appelait Ange mais c’était plutôt un démon »',
     speaker: 'Lina, 14 ans',
     ageLabel: 'Collège',
-    thumbnail: '/assets/temoignage-1.png',
-    cover: '/assets/player-cover.png',
+    image: '/assets/recits/lina.webp',
     category: 'Harcèlement scolaire',
     transcriptFr: [
       '« Au début, je pensais que ce n’était que des blagues dans la cour. Puis les moqueries ont continué tous les jours, jusque sur mon téléphone le soir. »',
@@ -463,8 +461,7 @@ export const TESTIMONIES: TestimonyItem[] = [
     title: 'Briser le silence face au cyberharcèlement',
     speaker: 'Maya, 19 ans',
     ageLabel: 'Université',
-    thumbnail: '/assets/temoignage-2.png',
-    cover: '/assets/temoignage-2.png',
+    image: '/assets/recits/maya.webp',
     category: 'Cyberharcèlement',
     transcriptFr: [
       '« Quand une rumeur a commencé à circuler dans un groupe étudiant, j’ai voulu tout effacer et disparaître des réseaux. »',
@@ -482,8 +479,7 @@ export const TESTIMONIES: TestimonyItem[] = [
     title: 'Comment un témoin m’a aidé à m’en sortir',
     speaker: 'Camille, 11 ans',
     ageLabel: 'Primaire',
-    thumbnail: '/assets/temoignage-1.png',
-    cover: '/assets/player-cover.png',
+    image: '/assets/recits/camille.webp',
     category: 'Rôle du témoin',
     transcriptFr: [
       '« À la récréation, je restais toujours près du banc tout seul. Un camarade de CM2 est venu s’asseoir à côté de moi et a prévenu la maîtresse. »',
@@ -499,8 +495,7 @@ export const TESTIMONIES: TestimonyItem[] = [
     title: 'Repérer les signaux faibles chez son enfant',
     speaker: 'Sophie, maman de Léo',
     ageLabel: 'Parent',
-    thumbnail: '/assets/temoignage-1.png',
-    cover: '/assets/player-cover.png',
+    image: '/assets/recits/sophie.webp',
     category: 'Parole de parent',
     transcriptFr: [
       '« Mon fils ne disait rien, mais il dormait mal et refusait soudainement de prendre le bus scolaire. »',
@@ -518,8 +513,7 @@ export const TESTIMONIES: TestimonyItem[] = [
     title: 'Retrouver confiance après des mois d’isolement',
     speaker: 'Nadia, 16 ans',
     ageLabel: 'Lycée',
-    thumbnail: '/assets/temoignage-1.png',
-    cover: '/assets/player-cover.png',
+    image: '/assets/recits/nadia.webp',
     category: 'Reconstruction',
     transcriptFr: [
       '« Parler avec un psychologue m’a permis de comprendre que ma valeur ne dépendait pas des insultes reçues au lycée. »',
@@ -535,8 +529,7 @@ export const TESTIMONIES: TestimonyItem[] = [
     title: 'Dire stop au harcèlement au travail et en stage',
     speaker: 'Théo, 22 ans',
     ageLabel: 'Adulte',
-    thumbnail: '/assets/temoignage-1.png',
-    cover: '/assets/player-cover.png',
+    image: '/assets/recits/theo.webp',
     category: 'Vie étudiante & pro',
     transcriptFr: [
       '« Pendant mon stage, les remarques humiliantes devant l’équipe étaient présentées comme de l’humour. »',
