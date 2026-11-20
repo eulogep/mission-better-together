@@ -1,170 +1,106 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookHeart, MessageSquare, Sparkles, User, Wind } from 'lucide-react';
+import { BellRing, BookHeart, Building2, Info, MapPin, PlayCircle, Sparkles, Users, Wind } from 'lucide-react';
 import { ScreenShell } from '../components/ScreenShell';
 import { MbtButton } from '../components/MbtButton';
+import { useMoodCheck } from '../components/MoodCheck';
 import { useSerenity } from '../context/SerenityContext';
+import { Route } from '../app/routes';
 
 interface AccueilScreenProps {
-  onUrgence: () => void;
-  onSinformer: () => void;
-  onDetails: () => void;
-  onContacts: () => void;
-  onSpecialistes: () => void;
-  onSanctuary: () => void;
-  onJournal: () => void;
-  onEmergencyCall: () => void;
+  onNavigate: (route: Route) => void;
+  onCall: (serviceKey: string) => void;
 }
 
 const CALM_WHISPERS = [
-  'Tu es en sécurité ici · Prends ton temps',
-  'Respire doucement · Tu n’es pas seul·e',
-  'Ta parole compte · Un pas à la fois',
+  'Prends ton temps · Tu n’es pas seul·e',
+  'Respire doucement · Un pas à la fois',
+  'Ta parole compte',
   'Personne ne mérite de souffrir en silence',
 ];
 
-export const AccueilScreen: React.FC<AccueilScreenProps> = ({
-  onUrgence,
-  onSinformer,
-  onDetails,
-  onContacts,
-  onSpecialistes,
-  onSanctuary,
-  onJournal,
-  onEmergencyCall,
-}) => {
+/** Tableau de bord : accès direct à tous les services de MBT. */
+export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, onCall }) => {
   const { nightMode } = useSerenity();
   const [whisperIdx, setWhisperIdx] = useState(0);
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      setWhisperIdx((i) => (i + 1) % CALM_WHISPERS.length);
-    }, 5500);
+    const id = window.setInterval(() => setWhisperIdx((i) => (i + 1) % CALM_WHISPERS.length), 5500);
     return () => window.clearInterval(id);
   }, []);
 
+  const mood = useMoodCheck({
+    onBreathe: () => onNavigate({ name: 'serenite' }),
+    onChat: () => onNavigate({ name: 'specialistes' }),
+    onJournal: () => onNavigate({ name: 'carnet' }),
+    onAlert: () => onNavigate({ name: 'alerte' }),
+    onSinformer: () => onNavigate({ name: 'article', id: 'je-suis-temoin' }),
+    onCall,
+  });
+
+  const tiles: { label: string; hint: string; icon: typeof Wind; color: string; route: Route }[] = [
+    { label: 'Alerter un proche', hint: 'SMS prêt à envoyer', icon: BellRing, color: '#FF5B5B', route: { name: 'alerte' } },
+    { label: 'Mes contacts', hint: 'Personnes de confiance', icon: Users, color: '#007AFF', route: { name: 'contacts' } },
+    { label: 'Lieux d’aide', hint: 'Carte autour de moi', icon: MapPin, color: '#00A884', route: { name: 'lieux' } },
+    { label: 'Structures d’aide', hint: '3018, 119, 3114…', icon: Building2, color: '#2663FF', route: { name: 'specialistes' } },
+    { label: 'Sérénité', hint: 'Respirer, s’apaiser', icon: Wind, color: '#00C492', route: { name: 'serenite' } },
+    { label: 'Carnet protégé', hint: 'Noter, garder des preuves', icon: BookHeart, color: '#C691C9', route: { name: 'carnet' } },
+    { label: 'Récits', hint: 'Histoires illustratives', icon: PlayCircle, color: '#E5A23A', route: { name: 'temoignages' } },
+    { label: 'Comment ça marche', hint: 'MBT et ta vie privée', icon: Info, color: '#7174AA', route: { name: 'a-propos' } },
+  ];
+
+  const tileClass = nightMode
+    ? 'bg-white/[0.06] border-white/10 text-[#eef0fa] hover:bg-white/10'
+    : 'bg-white/90 border-black/[0.07] text-[#1d1b20] hover:bg-white';
+
   return (
-    <ScreenShell theme="default" showBrand onPhoneFabClick={onEmergencyCall}>
-      {/* Quick access rows under MBT — exact Figma hierarchy */}
-      <div className="px-4 mt-1 flex flex-col gap-2.5 items-start">
-        <button
-          type="button"
-          onClick={onContacts}
-          className={`group flex items-center gap-2.5 cursor-pointer rounded-full pr-3 py-0.5 active:scale-[0.97] transition ${
-            nightMode ? 'hover:bg-white/8' : 'hover:bg-black/5'
-          }`}
-        >
-          <span
-            className={`w-[48px] h-[48px] rounded-full border flex items-center justify-center transition ${
-              nightMode
-                ? 'border-white/30 bg-white/8 text-white group-hover:border-white'
-                : 'border-[#8e8e93] bg-white/85 text-black group-hover:border-black'
-            }`}
-          >
-            <User className="w-7 h-7" strokeWidth={2.1} />
-          </span>
-          <span
-            className={`font-ubuntu font-medium text-[13px] leading-[1.2] tracking-[-0.13px] text-left max-w-[95px] ${
-              nightMode ? 'text-[#eef0fa]' : 'text-black'
-            }`}
-          >
-            Contacts d’urgence
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onSpecialistes}
-          className={`group flex items-center gap-3 pl-2 cursor-pointer rounded-full pr-3 py-1 active:scale-[0.97] transition ${
-            nightMode ? 'hover:bg-white/8' : 'hover:bg-black/5'
-          }`}
-        >
-          <span className="w-[32px] h-[32px] flex items-center justify-center">
-            <MessageSquare
-              className={`w-7 h-7 ${
-                nightMode ? 'fill-[#eef0fa] text-[#eef0fa]' : 'fill-[#1d1b20] text-[#1d1b20]'
-              }`}
-            />
-          </span>
-          <span
-            className={`font-ubuntu font-medium text-[13px] leading-[1.2] tracking-[-0.13px] text-left max-w-[95px] ${
-              nightMode ? 'text-[#eef0fa]' : 'text-black'
-            }`}
-          >
-            Contacter spécialistes
-          </span>
-        </button>
-      </div>
-
-      {/* Gentle Breathing Affirmation Pill */}
-      <div className="px-5 mt-3 mb-2 h-7 flex items-center justify-center">
+    <ScreenShell theme="default" showBrand onBrandClick={() => onNavigate({ name: 'accueil' })} overlay={mood.sheet}>
+      <div className="px-4 mt-1 h-7 flex items-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={whisperIdx}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.55 }}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11.5px] font-medium backdrop-blur-xs border ${
-              nightMode
-                ? 'bg-white/6 border-white/10 text-[#cfd5f0]'
-                : 'bg-white/80 border-[#7174aa]/15 text-[#626585]'
+            transition={{ duration: 0.5 }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-medium border ${
+              nightMode ? 'bg-white/6 border-white/10 text-[#cfd5f0]' : 'bg-white/80 border-[#7174aa]/15 text-[#626585]'
             }`}
           >
             <Sparkles className="w-3 h-3 text-[#00c492]" />
-            <span>{CALM_WHISPERS[whisperIdx]}</span>
+            {CALM_WHISPERS[whisperIdx]}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Main Figma CTA Buttons Stack */}
-      <div className="px-4 mt-1 flex flex-col gap-[18px]">
-        <MbtButton color="#FF8989" size="lg" onClick={onUrgence}>
+      <div className="px-4 mt-3">{mood.widget}</div>
+
+      <div className="px-4 mt-5 grid gap-4 lg:grid-cols-2">
+        <MbtButton color="#FF8989" size="lg" onClick={() => onNavigate({ name: 'urgence' })}>
           URGENCE
         </MbtButton>
-
-        <MbtButton color="#7174AA" size="lg" onClick={onSinformer}>
+        <MbtButton color="#7174AA" size="lg" onClick={() => onNavigate({ name: 'sinformer' })}>
           S’INFORMER
         </MbtButton>
+      </div>
 
-        <div className="flex justify-center">
-          <MbtButton color="#3B3B3B" size="md" className="w-[228px]" onClick={onDetails}>
-            Détails
-          </MbtButton>
-        </div>
-
-        {/* Serene Sanctuary & Protected Journal Companion Pills */}
-        <div className="grid grid-cols-2 gap-2.5 pt-0.5">
-          <motion.button
+      <div className="px-4 mt-5 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        {tiles.map((t) => (
+          <button
+            key={t.label}
             type="button"
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={onSanctuary}
-            className={`h-[48px] rounded-[22px] px-3.5 flex items-center justify-center gap-2 text-[13px] font-ubuntu font-medium border-2 transition cursor-pointer backdrop-blur-sm ${
-              nightMode
-                ? 'bg-[#00e8ae]/12 border-[#00e8ae]/45 text-[#7ef7d6] hover:bg-[#00e8ae]/20'
-                : 'bg-[#effcf8]/90 border-[#00e8ae]/65 text-[#008564] hover:bg-[#e2f9f2]'
-            }`}
+            onClick={() => onNavigate(t.route)}
+            className={`min-h-[96px] rounded-[24px] border-2 px-3.5 py-3 flex flex-col items-start justify-between gap-2 text-left active:scale-[0.97] transition cursor-pointer ${tileClass}`}
           >
-            <Wind className="w-4 h-4 shrink-0" />
-            <span>Espace Sérénité</span>
-          </motion.button>
-
-          <motion.button
-            type="button"
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={onJournal}
-            className={`h-[48px] rounded-[22px] px-3.5 flex items-center justify-center gap-2 text-[13px] font-ubuntu font-medium border-2 transition cursor-pointer backdrop-blur-sm ${
-              nightMode
-                ? 'bg-[#c691c9]/14 border-[#c691c9]/45 text-[#ecc6ee] hover:bg-[#c691c9]/22'
-                : 'bg-[#fbf4fc]/90 border-[#c691c9]/65 text-[#8a4d8e] hover:bg-[#f5e7f7]'
-            }`}
-          >
-            <BookHeart className="w-4 h-4 shrink-0" />
-            <span>Carnet Protégé</span>
-          </motion.button>
-        </div>
+            <span className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${t.color}1f`, color: t.color }}>
+              <t.icon className="w-5 h-5" strokeWidth={2.2} />
+            </span>
+            <span>
+              <span className="block font-ubuntu font-medium text-[14.5px] leading-tight">{t.label}</span>
+              <span className="block mt-0.5 text-[11.5px] leading-tight opacity-60">{t.hint}</span>
+            </span>
+          </button>
+        ))}
       </div>
     </ScreenShell>
   );

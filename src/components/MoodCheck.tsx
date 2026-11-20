@@ -114,7 +114,7 @@ export function useMoodCheck(actions: MoodActions) {
   };
 
   const widget = (
-    <div className="w-[190px] rounded-[24px] bg-white/85 backdrop-blur-sm border-2 border-black/[0.07] px-2.5 pt-2.5 pb-2 shadow-[0_10px_26px_rgba(0,0,0,0.06)]">
+    <div className="w-full rounded-[24px] bg-white/85 backdrop-blur-sm border-2 border-black/[0.07] px-2.5 pt-2.5 pb-2 shadow-[0_10px_26px_rgba(0,0,0,0.06)]">
       <p className="px-1 font-ubuntu font-medium text-[12.5px] leading-tight text-[#1d1b20]">
         {greeting()} Ta météo&nbsp;?
       </p>

@@ -40,7 +40,9 @@ export const AlertScreen: React.FC<AlertScreenProps> = ({ onBack, onHome, onCont
   const trusted = contacts.filter((c) => c.trusted);
 
   const [position, setPosition] = useState<GeoPoint | null>(null);
-  const [locating, setLocating] = useState(true);
+  const [locating, setLocating] = useState(false);
+  // « Préparé » ≠ « envoyé » : on ne sait jamais si l'utilisateur a réellement envoyé le SMS
+  const [preparedFor, setPreparedFor] = useState<string | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [message, setMessage] = useState(() => buildMessage(null));
   const [edited, setEdited] = useState(false);
@@ -58,10 +60,7 @@ export const AlertScreen: React.FC<AlertScreenProps> = ({ onBack, onHome, onCont
     }
   }, []);
 
-  useEffect(() => {
-    void locate();
-  }, [locate]);
-
+  // La position n'est JAMAIS récupérée automatiquement : uniquement sur demande explicite.
   // Tant que l'utilisateur n'a pas modifié le texte, on y insère la position dès qu'elle arrive
   useEffect(() => {
     if (!edited) setMessage(buildMessage(position));
@@ -85,30 +84,57 @@ export const AlertScreen: React.FC<AlertScreenProps> = ({ onBack, onHome, onCont
       <div className="px-4 mt-3 flex flex-col gap-4">
         <h1 className="font-ubuntu font-bold text-[28px] leading-[1.2] text-black px-1">Alerter mes proches</h1>
 
-        {/* Position */}
-        <div className="flex items-center gap-2.5 rounded-[20px] bg-white border-2 border-black/10 px-4 py-3">
-          {locating ? (
-            <Loader2 className="w-5 h-5 animate-spin text-[#FF8989] shrink-0" />
-          ) : (
-            <MapPin className={`w-5 h-5 shrink-0 ${position ? 'text-emerald-600' : 'text-[#FF8989]'}`} />
-          )}
-          <p className="flex-1 text-[13px] leading-snug text-[#3b3b3b]">
-            {locating
-              ? 'Recherche de votre position…'
-              : position
-                ? `Position ajoutée au message (précision ~${Math.round(position.accuracy ?? 0)} m)`
-                : geoError}
-          </p>
-          {!locating && (
-            <button
-              type="button"
-              onClick={() => void locate()}
-              aria-label="Actualiser ma position"
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 cursor-pointer"
-            >
-              <RefreshCw className="w-4 h-4 text-[#3b3b3b]" />
-            </button>
-          )}
+        <p className="px-1 -mt-2 text-[13.5px] leading-snug text-[#555]">
+          Prépare un message pour une personne de confiance. Rien n’est envoyé sans ton action dans ton appli SMS.
+        </p>
+
+        {/* Position : uniquement si l'utilisateur le décide */}
+        <div className="rounded-[20px] bg-white border-2 border-black/10 px-4 py-3 flex flex-col gap-2">
+          <div className="flex items-center gap-2.5">
+            {locating ? (
+              <Loader2 className="w-5 h-5 animate-spin text-[#FF8989] shrink-0" />
+            ) : (
+              <MapPin className={`w-5 h-5 shrink-0 ${position ? 'text-emerald-600' : 'text-[#FF8989]'}`} />
+            )}
+            <p className="flex-1 text-[13px] leading-snug text-[#3b3b3b]">
+              {locating
+                ? 'Recherche de ta position…'
+                : position
+                  ? `Ta position est ajoutée au message (précision ~${Math.round(position.accuracy ?? 0)} m). Elle ne sera vue que par les personnes à qui tu envoies le SMS.`
+                  : geoError ?? 'Ta position n’est pas incluse dans le message.'}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {!position ? (
+              <button
+                type="button"
+                onClick={() => void locate()}
+                disabled={locating}
+                className="flex-1 h-10 rounded-full bg-[#FF8989] text-white text-[13.5px] font-semibold disabled:opacity-60 cursor-pointer"
+              >
+                Ajouter ma position
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void locate()}
+                  aria-label="Actualiser ma position"
+                  className="h-10 px-4 rounded-full border-2 border-black/10 text-[13px] font-medium inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Actualiser
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPosition(null)}
+                  className="h-10 px-4 rounded-full border-2 border-black/10 text-[13px] font-medium cursor-pointer"
+                >
+                  Retirer ma position
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Message */}
@@ -129,7 +155,7 @@ export const AlertScreen: React.FC<AlertScreenProps> = ({ onBack, onHome, onCont
         {trusted.length === 0 ? (
           <div className="rounded-[24px] border-[3px] border-dashed border-[#FF8989] px-5 py-5 text-center bg-white">
             <p className="text-[14px] leading-snug text-[#3b3b3b]">
-              Vous n’avez pas encore de personne de confiance. Ajoutez-en une pour pouvoir l’alerter ici.
+              Tu n’as pas encore de personne de confiance. Ajoute-en une pour pouvoir la prévenir ici.
             </p>
             <button
               type="button"
@@ -150,12 +176,13 @@ export const AlertScreen: React.FC<AlertScreenProps> = ({ onBack, onHome, onCont
                 )}
                 onClick={() => {
                   vibrate();
-                  toast('Ton appli SMS s’ouvre : il ne reste qu’à envoyer.', { tone: 'warm' });
+                  setPreparedFor('tes proches');
+                  toast('Message préparé : appuie sur « Envoyer » dans ton appli SMS.', { tone: 'warm' });
                 }}
                 className="flex items-center justify-center gap-2 py-4 rounded-[24px] bg-[#FF3B30] text-white font-ubuntu font-medium text-[18px] shadow-[0_10px_24px_rgba(255,59,48,0.35)] active:scale-[0.98] transition"
               >
                 <MessageSquareText className="w-5 h-5" />
-                Envoyer à tous ({trusted.length})
+                Préparer un SMS pour tous ({trusted.length})
               </a>
             )}
             {trusted.map((c) => (
@@ -173,9 +200,10 @@ export const AlertScreen: React.FC<AlertScreenProps> = ({ onBack, onHome, onCont
                   href={smsHref(c.phone, message)}
                   onClick={() => {
                   vibrate();
-                  toast('Ton appli SMS s’ouvre : il ne reste qu’à envoyer.', { tone: 'warm' });
+                  setPreparedFor(c.firstName);
+                  toast('Message préparé : appuie sur « Envoyer » dans ton appli SMS.', { tone: 'warm' });
                 }}
-                  aria-label={`Envoyer l’alerte par SMS à ${c.firstName}`}
+                  aria-label={`Préparer un SMS pour ${c.firstName}`}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-[#FF8989] text-white text-[13px] font-semibold active:scale-95 transition"
                 >
                   <MessageSquareText className="w-4 h-4" />
@@ -191,6 +219,13 @@ export const AlertScreen: React.FC<AlertScreenProps> = ({ onBack, onHome, onCont
                 </button>
               </div>
             ))}
+          </div>
+        )}
+
+        {preparedFor && (
+          <div role="status" className="rounded-[20px] px-4 py-3 bg-[#FFF8D6] border border-[#E5BE1A]/50 text-[13.5px] leading-snug text-[#5c4a00]">
+            <strong>Message préparé pour {preparedFor}.</strong> Il n’est envoyé que lorsque tu appuies sur « Envoyer » dans
+            ton appli SMS. MBT ne peut pas savoir s’il est parti : vérifie dans tes messages.
           </div>
         )}
 

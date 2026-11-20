@@ -119,7 +119,7 @@ function generateReply(userText: string): {
   ) {
     return {
       text: 'Dans un établissement scolaire, vous pouvez noter les faits (dates, lieux, témoins) et en parler à un adulte de confiance : parent, infirmière, CPE ou référent pHARe. Voulez-vous que nous préparions ensemble comment aborder la conversation ?',
-      crisisAction: [{ label: '3020 · Harcèlement scolaire', serviceKey: '3020' }],
+      crisisAction: [{ label: '3018 · Harcèlement', serviceKey: '3018' }],
     };
   }
 

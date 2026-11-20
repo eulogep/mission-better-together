@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone } from 'lucide-react';
+import { BellRing, Info, MapPin, MessageSquareText, NotebookPen, Phone, Wind } from 'lucide-react';
 import { ScreenShell } from '../components/ScreenShell';
 import { MbtButton } from '../components/MbtButton';
 import { useSerenity } from '../context/SerenityContext';
@@ -53,6 +53,10 @@ interface VictimeActionsProps {
   onBack: () => void;
   onHome: () => void;
   onMap: () => void;
+  onAlert: () => void;
+  onJournal: () => void;
+  onBreathe: () => void;
+  onWhoToCall: () => void;
   onCall: (serviceKey: string) => void;
 }
 
@@ -60,28 +64,53 @@ export const VictimeActionsScreen: React.FC<VictimeActionsProps> = ({
   onBack,
   onHome,
   onMap,
+  onAlert,
+  onJournal,
+  onBreathe,
+  onWhoToCall,
   onCall,
 }) => (
-  <ScreenShell
-    theme="default"
-    showBack
-    onBack={onBack}
-    onBrandClick={onHome}
-    onPhoneFabClick={() => onCall('urgence')}
-  >
+  <ScreenShell theme="default" showBack onBack={onBack} onBrandClick={onHome}>
     <div className="px-4 mt-4 flex flex-col gap-[16px]">
-      <MbtButton color="#FF8989" size="lg" onClick={onMap}>
-        Carte de lieux sécurisés
+      <MbtButton color="#FF8989" size="md" className="w-full" onClick={() => onCall('17')}>
+        Danger immédiat : 17
       </MbtButton>
-      <MbtButton color="#FF8989" size="lg" onClick={() => onCall('3018')}>
-        3018 - Harcèlement
+      <MbtButton color="#FF8989" size="md" className="w-full" onClick={onAlert}>
+        <BellRing className="w-6 h-6 mr-3 shrink-0" strokeWidth={2.2} />
+        Prévenir un proche
       </MbtButton>
-      <MbtButton color="#FF8989" size="lg" onClick={() => onCall('3114')}>
-        3114 - Suicide
+      <MbtButton color="#FF8989" size="md" className="w-full" onClick={() => onCall('3018')}>
+        3018 · Harcèlement
       </MbtButton>
-      <MbtButton color="#FF8989" size="lg" onClick={() => onCall('17')}>
-        17 - POLICE
+      <MbtButton color="#FF8989" size="md" className="w-full" onClick={() => onCall('3114')}>
+        3114 · Ça ne va pas du tout
       </MbtButton>
+      <MbtButton color="#FF8989" size="md" className="w-full" onClick={onMap}>
+        <MapPin className="w-6 h-6 mr-3 shrink-0" strokeWidth={2.2} />
+        Lieux d’aide proches
+      </MbtButton>
+
+      <div className="flex flex-col gap-2.5 mt-1">
+        {[
+          { icon: MessageSquareText, color: '#FF8989', title: 'Impossible de parler ?', text: 'Envoie un SMS au 114 (secours).', onClick: () => onCall('114') },
+          { icon: NotebookPen, color: '#7174AA', title: 'Une fois en sécurité :', text: 'note ce qui s’est passé dans ton carnet.', onClick: onJournal },
+          { icon: Wind, color: '#00C492', title: 'Le cœur qui bat trop vite ?', text: 'Respirons ensemble.', onClick: onBreathe },
+          { icon: Info, color: '#2663FF', title: 'Pas sûr·e de qui appeler ?', text: 'Le bon numéro selon la situation.', onClick: onWhoToCall },
+        ].map((it) => (
+          <button
+            key={it.title}
+            type="button"
+            onClick={it.onClick}
+            className="flex items-center gap-3 px-4 py-3 rounded-[22px] bg-white/95 border-2 text-left hover:shadow-md active:scale-[0.98] transition cursor-pointer"
+            style={{ borderColor: `${it.color}99` }}
+          >
+            <it.icon className="w-5 h-5 shrink-0" style={{ color: it.color }} />
+            <span className="font-ubuntu text-[14px] leading-snug text-[#3b3b3b]">
+              <strong className="font-medium">{it.title}</strong> {it.text}
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
   </ScreenShell>
 );

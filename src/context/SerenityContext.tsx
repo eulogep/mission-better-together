@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { SoundChannel, soundEngine, SoundLevels } from '../utils/soundEngine';
+import { getPreferences, updatePreferences } from '../lib/preferences';
 
 interface SerenityContextValue {
   nightMode: boolean;
@@ -62,9 +63,24 @@ export const SerenityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  // Le volume général et la coupure viennent des préférences sauvegardées
+  useEffect(() => {
+    const p = getPreferences().serenite;
+    soundEngine.setMaster(p.masterVolume, p.muted);
+  }, []);
+
+  const remember = (levels: SoundLevels) => {
+    // On mémorise le dernier mélange non nul pour pouvoir le reprendre plus tard
+    if (Object.values(levels).some((v) => v > 0.01)) {
+      updatePreferences((p) => ({ ...p, serenite: { ...p.serenite, mix: levels } }));
+    }
+  };
+
   const setSoundLevel = (channel: SoundChannel, level: number) => {
     soundEngine.setLevel(channel, level);
-    setSoundLevels(soundEngine.getLevels());
+    const levels = soundEngine.getLevels();
+    setSoundLevels(levels);
+    remember(levels);
   };
 
   const applyPreset = (levels: SoundLevels) => {
@@ -72,6 +88,7 @@ export const SerenityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       soundEngine.setLevel(ch, levels[ch]);
     });
     setSoundLevels(soundEngine.getLevels());
+    remember(soundEngine.getLevels());
   };
 
   const stopAllSounds = () => {
@@ -85,7 +102,9 @@ export const SerenityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (isSoundActive) {
       stopAllSounds();
     } else {
-      applyPreset({ rain: 0.45, ocean: 0, breeze: 0.15, harmony: 0.3 });
+      const saved = getPreferences().serenite.mix;
+      const hasSaved = Object.values(saved).some((v) => v > 0.01);
+      applyPreset(hasSaved ? saved : { rain: 0.45, ocean: 0, breeze: 0.15, harmony: 0.3 });
     }
   };
 

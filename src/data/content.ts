@@ -110,7 +110,7 @@ export const PROFILES: Record<ProfileId, ProfileHubConfig> = {
     hubLayout: 'primaire-3',
     buttons: {
       conseils: 'CONSEIL',
-      temoignages: 'VIDEOS',
+      temoignages: 'HISTOIRES',
       contacts: "NUMERO\nD'AIDE",
     },
     advice: {
@@ -134,11 +134,11 @@ export const PROFILES: Record<ProfileId, ProfileHubConfig> = {
       'qui-appeler': {
         title: 'QUI APPELER ?',
         paragraphs: [
-          '3020 (France) — Service national de lutte contre le harcèlement scolaire.',
+          '3018 — le numéro national contre le harcèlement, à l’école comme sur internet. C’est gratuit.',
           'Association locale d’aide à l’enfance.',
         ],
         quickNumbers: [
-          { number: '3020', label: '3020 · Harcèlement scolaire' },
+          { number: '3018', label: '3018 · Harcèlement' },
           { number: '119', label: '119 · Enfance en danger' },
         ],
       },
@@ -152,7 +152,7 @@ export const PROFILES: Record<ProfileId, ProfileHubConfig> = {
     hubLayout: 'grid-4',
     buttons: {
       conseils: 'CONSEILS',
-      temoignages: 'TEMOIGNAGES\nVIDEOS',
+      temoignages: 'RÉCITS',
       specialistes: "AIDE\nD'UN ADULTE",
       contacts: 'MES CONTACTS',
     },
@@ -177,14 +177,11 @@ export const PROFILES: Record<ProfileId, ProfileHubConfig> = {
       'qui-appeler': {
         title: 'QUI APPELER ?',
         paragraphs: [
-          '3020 pour harcèlement scolaire.',
-          '3018 pour cyberharcèlement.',
-          'Évite de rester seul avec le ou les agresseurs.',
+          '3018 : numéro national unique contre le harcèlement scolaire et le cyberharcèlement (7j/7, 9h–23h, aussi par tchat).',
           '119 (Enfance en danger) si la situation met ta sécurité en jeu.',
         ],
         quickNumbers: [
-          { number: '3020', label: '3020 · Harcèlement scolaire' },
-          { number: '3018', label: '3018 · Cyberharcèlement' },
+          { number: '3018', label: '3018 · Harcèlement & cyberharcèlement' },
           { number: '119', label: '119 · Enfance en danger' },
         ],
       },
@@ -197,7 +194,7 @@ export const PROFILES: Record<ProfileId, ProfileHubConfig> = {
     hubLayout: 'grid-4',
     buttons: {
       conseils: 'CONSEILS',
-      temoignages: 'TEMOIGNAGES',
+      temoignages: 'RÉCITS',
       specialistes: 'SPECIALISTES',
       contacts: 'MES CONTACTS',
     },
@@ -241,7 +238,7 @@ export const PROFILES: Record<ProfileId, ProfileHubConfig> = {
     hubLayout: 'grid-4',
     buttons: {
       conseils: 'CONSEILS',
-      temoignages: 'TEMOIGNAGES',
+      temoignages: 'RÉCITS',
       specialistes: 'SPECIALISTES',
       contacts: 'MES CONTACTS',
     },
@@ -271,8 +268,7 @@ export const PROFILES: Record<ProfileId, ProfileHubConfig> = {
           'Association locale d’aide à l’enfance.',
         ],
         quickNumbers: [
-          { number: '3018', label: '3018 · Cyberharcèlement' },
-          { number: '3020', label: '3020 · Harcèlement scolaire' },
+          { number: '3018', label: '3018 · Harcèlement & cyberharcèlement' },
           { number: '3919', label: '3919 · Violences' },
         ],
       },
@@ -297,12 +293,12 @@ export interface EmergencyServiceInfo {
 export const EMERGENCY_SERVICES: Record<string, EmergencyServiceInfo> = {
   urgence: {
     code: 'urgence',
-    displayName: 'Num urgence',
+    displayName: '112',
     dialNumber: '112',
-    subtitle: 'Assistance MBT · Redirection d’urgence',
+    subtitle: 'Numéro d’urgence européen',
     availability: '24h/24 · 7j/7 · Gratuit',
     description:
-      'Service d’assistance d’urgence qui évalue votre situation et vous redirige immédiatement vers les secours ou la cellule d’écoute adaptée.',
+      'Le 112 met en relation avec les secours (police, gendarmerie, SAMU, pompiers), partout dans l’Union européenne. MBT n’opère aucun service d’urgence : l’appel passe directement par ton téléphone.',
   },
   '3018': {
     code: '3018',
@@ -311,18 +307,9 @@ export const EMERGENCY_SERVICES: Record<string, EmergencyServiceInfo> = {
     subtitle: 'Harcèlement & Cyberharcèlement',
     availability: '7j/7 · 9h à 23h · Gratuit & Anonyme',
     description:
-      'Numéro national dédié aux victimes et témoins de harcèlement et de violences numériques. Équipe de psychologues, juristes et spécialistes.',
+      'Numéro national unique contre le harcèlement scolaire et le cyberharcèlement, opéré par l’association e-Enfance. Psychologues, juristes et spécialistes du numérique ; peut faire supprimer des contenus en ligne. Ce n’est pas un numéro d’urgence.',
     chatUrl: 'https://e-enfance.org/besoin-daide/',
-    chatLabel: 'Tchat, WhatsApp ou Messenger du 3018',
-  },
-  '3020': {
-    code: '3020',
-    displayName: '3020',
-    dialNumber: '3020',
-    subtitle: 'Non au Harcèlement Scolaire',
-    availability: 'Lun–Ven · Gratuit & Confidentiel',
-    description:
-      'Ligne nationale d’écoute et d’orientation pour les élèves, parents et professionnels confrontés au harcèlement scolaire.',
+    chatLabel: 'Tchat, WhatsApp, Messenger ou appli 3018 (association e-Enfance)',
   },
   '3114': {
     code: '3114',
@@ -342,7 +329,7 @@ export const EMERGENCY_SERVICES: Record<string, EmergencyServiceInfo> = {
     subtitle: 'Police Secours',
     availability: '24h/24 · 7j/7 · Urgence immédiate',
     description:
-      'Intervention immédiate des forces de l’ordre en cas d’agression, de menace physique ou de danger imminent.',
+      'Police ou gendarmerie, en cas d’agression, de menace ou de danger immédiat.',
   },
   '119': {
     code: '119',
@@ -381,6 +368,17 @@ export const EMERGENCY_SERVICES: Record<string, EmergencyServiceInfo> = {
       'Si vous ne pouvez pas parler (agresseur à proximité, difficulté à entendre ou à parler), envoyez un SMS au 114 : il alerte police, gendarmerie, SAMU ou pompiers.',
     smsOnly: true,
   },
+  '116006': {
+    code: '116006',
+    displayName: '116 006',
+    dialNumber: '116 006',
+    subtitle: 'France Victimes · Aide aux victimes',
+    availability: '7j/7 · 9h à 20h · Gratuit',
+    description:
+      'Numéro national d’aide aux victimes d’infractions (ministère de la Justice, réseau France Victimes) : écoute, information sur les droits, orientation vers une association près de chez toi.',
+    chatUrl: 'https://www.france-victimes.fr/',
+    chatLabel: 'Site de France Victimes',
+  },
   '0800235236': {
     code: '0800235236',
     displayName: 'Fil Santé Jeunes',
@@ -407,9 +405,9 @@ export const REPORT_LINKS: { label: string; detail: string; url: string }[] = [
     url: 'https://www.masecurite.interieur.gouv.fr/fr/demarches-en-ligne/plainte-en-ligne',
   },
   {
-    label: 'Échanger avec un policier ou gendarme (tchat)',
-    detail: 'Violences sexuelles et sexistes : tchat anonyme 24h/24.',
-    url: 'https://www.service-public.gouv.fr/cmi',
+    label: 'Tchater avec un policier ou un gendarme (Ma Sécurité)',
+    detail: 'Victimes et témoins de violences, y compris harcèlement : tchat 24h/24 ; espace dédié aux mineurs.',
+    url: 'https://www.masecurite.interieur.gouv.fr/fr',
   },
 ];
 
@@ -569,8 +567,8 @@ export interface ContactItem {
  * Les proches (parents, amis, CPE…) sont ajoutés par l'utilisateur.
  */
 export const HELP_CONTACTS: ContactItem[] = [
-  { id: 'svc-3018', firstName: 'Harcèlement', lastName: '3018', phone: '3018', group: 'Aide', note: 'Harcèlement & cyberharcèlement' },
-  { id: 'svc-3020', firstName: 'Non au Harcèlement', lastName: '3020', phone: '3020', group: 'Aide', note: 'Harcèlement scolaire' },
+  { id: 'svc-3018', firstName: 'Harcèlement', lastName: '3018', phone: '3018', group: 'Aide', note: 'Numéro unique · 7j/7 9h–23h' },
+  { id: 'svc-116006', firstName: 'Aide aux victimes', lastName: '116 006', phone: '116 006', group: 'Aide', note: 'France Victimes · 7j/7 9h–20h' },
   { id: 'svc-119', firstName: 'Allô Enfance', lastName: '119', phone: '119', group: 'Aide', note: 'Enfance en danger 24h/24' },
   { id: 'svc-3114', firstName: 'Prévention Suicide', lastName: '3114', phone: '3114', group: 'Aide', note: 'Écoute 24h/24' },
   { id: 'svc-fsj', firstName: 'Fil Santé Jeunes', lastName: '', phone: '0 800 235 236', group: 'Aide', note: '12–25 ans · 9h–23h' },

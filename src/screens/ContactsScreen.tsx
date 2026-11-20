@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { BellRing, ChevronLeft, Contact, Phone, Plus, Search, Trash2, UserPlus, X } from 'lucide-react';
+import { BellRing, ChevronLeft, Contact, Pencil, Phone, Plus, Search, Trash2, UserPlus, X } from 'lucide-react';
 import { ContactGroup, ContactItem, HELP_CONTACTS } from '../data/content';
 import { canPickContacts, newContactId, pickPhoneContacts, useUserContacts } from '../lib/contacts';
 import { toast } from '../lib/toast';
@@ -55,7 +55,19 @@ export const ContactsScreen: React.FC<ContactsScreenProps> = ({ onBack, onCallCo
       .filter((s) => s.items.length > 0 || (s.group === 'Confiance' && !q));
   }, [userContacts, query]);
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const openEdit = (c: ContactItem) => {
+    setEditingId(c.id);
+    setFirstName(c.firstName);
+    setLastName(c.lastName);
+    setPhone(c.phone);
+    setGroup(c.group);
+    setShowAddModal(true);
+  };
+
   const resetForm = () => {
+    setEditingId(null);
     setFirstName('');
     setLastName('');
     setPhone('');
@@ -68,18 +80,23 @@ export const ContactsScreen: React.FC<ContactsScreenProps> = ({ onBack, onCallCo
     e.preventDefault();
     if (!firstName.trim() || !phoneIsValid) return;
     const next: ContactItem = {
-      id: newContactId(),
+      id: editingId ?? newContactId(),
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       phone: phone.trim(),
       group,
       trusted: group === 'Confiance',
     };
-    setUserContacts([next, ...userContacts]);
-    toast(
-      next.trusted ? `${next.firstName} fait partie de tes personnes de confiance.` : `${next.firstName} ajouté·e.`,
-      { tone: next.trusted ? 'warm' : 'success' }
-    );
+    if (editingId) {
+      setUserContacts(userContacts.map((c) => (c.id === editingId ? next : c)));
+      toast(`${next.firstName} : modifications enregistrées.`, { tone: 'success' });
+    } else {
+      setUserContacts([next, ...userContacts]);
+      toast(
+        next.trusted ? `${next.firstName} fait partie de tes personnes de confiance.` : `${next.firstName} ajouté·e.`,
+        { tone: next.trusted ? 'warm' : 'success' }
+      );
+    }
     resetForm();
     setShowAddModal(false);
   };
@@ -131,7 +148,7 @@ export const ContactsScreen: React.FC<ContactsScreenProps> = ({ onBack, onCallCo
           <h1 className="text-[17px] font-semibold text-black">Contacts</h1>
           <button
             type="button"
-            onClick={() => setShowAddModal(true)}
+            onClick={() => { resetForm(); setShowAddModal(true); }}
             aria-label="Ajouter un contact"
             className="w-9 h-9 -mr-2 flex items-center justify-center text-[#007AFF] hover:opacity-70 active:scale-90 transition cursor-pointer"
           >
@@ -192,7 +209,7 @@ export const ContactsScreen: React.FC<ContactsScreenProps> = ({ onBack, onCallCo
                 <div className="mt-3 flex flex-wrap justify-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowAddModal(true)}
+                    onClick={() => { resetForm(); setShowAddModal(true); }}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#007AFF] text-white text-[14px] font-medium cursor-pointer active:scale-95 transition"
                   >
                     <UserPlus className="w-4 h-4" />
@@ -243,6 +260,17 @@ export const ContactsScreen: React.FC<ContactsScreenProps> = ({ onBack, onCallCo
                 {contact.id.startsWith('custom_') && (
                   <button
                     type="button"
+                    onClick={() => openEdit(contact)}
+                    aria-label={`Modifier ${contact.firstName}`}
+                    title="Modifier ce contact"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[#8e8e93] hover:bg-black/5 hover:text-[#007AFF] active:scale-90 transition cursor-pointer shrink-0"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                )}
+                {contact.id.startsWith('custom_') && (
+                  <button
+                    type="button"
                     onClick={() => handleDeleteContact(contact)}
                     aria-label={`Supprimer ${contact.firstName}`}
                     title="Supprimer ce contact"
@@ -289,7 +317,7 @@ export const ContactsScreen: React.FC<ContactsScreenProps> = ({ onBack, onCallCo
               >
                 Annuler
               </button>
-              <h2 className="text-[16px] font-semibold text-black">Nouveau contact</h2>
+              <h2 className="text-[16px] font-semibold text-black">{editingId ? 'Modifier le contact' : 'Nouveau contact'}</h2>
               <button
                 type="submit"
                 disabled={!firstName.trim() || !phoneIsValid}

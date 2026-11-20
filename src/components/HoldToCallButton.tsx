@@ -7,6 +7,8 @@ interface HoldToCallButtonProps {
   /** Ce que fait le bouton, lu par les lecteurs d'écran */
   label: string;
   holdMs?: number;
+  /** fab : gros bouton flottant (Figma) ; nav : bouton central de la barre d'onglets */
+  variant?: 'fab' | 'nav';
 }
 
 const RING_R = 52;
@@ -17,7 +19,13 @@ const RING_C = 2 * Math.PI * RING_R;
  * ce qui évite les appels accidentels (poche, mauvais geste) sans ralentir un vrai appel.
  * Clavier et lecteurs d'écran (clic sans pointeur) : appel direct, car le geste est volontaire.
  */
-export const HoldToCallButton: React.FC<HoldToCallButtonProps> = ({ onConfirm, label, holdMs = 900 }) => {
+export const HoldToCallButton: React.FC<HoldToCallButtonProps> = ({
+  onConfirm,
+  label,
+  holdMs = 900,
+  variant = 'fab',
+}) => {
+  const isNav = variant === 'nav';
   const [holding, setHolding] = useState(false);
   const [hint, setHint] = useState(false);
   const holdingRef = useRef(false);
@@ -87,9 +95,11 @@ export const HoldToCallButton: React.FC<HoldToCallButtonProps> = ({ onConfirm, l
         onContextMenu={(e) => e.preventDefault()}
         aria-label={`${label} — maintenir appuyé`}
         title="Maintenir appuyé pour appeler"
-        className={`relative mbt-phone-fab w-[92px] h-[88px] rounded-full bg-white flex items-center justify-center select-none touch-none transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8989]/40 ${
-          holding ? 'scale-95 text-[#e5484d]' : 'text-[#1d1b20] hover:text-[#e5484d]'
-        }`}
+        className={`relative mbt-phone-fab rounded-full flex items-center justify-center select-none touch-none transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8989]/40 ${
+          isNav ? 'w-[62px] h-[62px] bg-[#FF5B5B] text-white' : 'w-[92px] h-[88px] bg-white'
+        } ${
+          holding ? 'scale-95' : ''
+        } ${isNav ? '' : holding ? 'text-[#e5484d]' : 'text-[#1d1b20] hover:text-[#e5484d]'}`}
         style={{ WebkitTouchCallout: 'none' }}
       >
         {/* Anneau de progression */}
@@ -104,7 +114,7 @@ export const HoldToCallButton: React.FC<HoldToCallButtonProps> = ({ onConfirm, l
             cy="60"
             r={RING_R}
             fill="none"
-            stroke="#FF5B5B"
+            stroke={isNav ? '#1d1b20' : '#FF5B5B'}
             strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={RING_C}
@@ -114,7 +124,7 @@ export const HoldToCallButton: React.FC<HoldToCallButtonProps> = ({ onConfirm, l
             }}
           />
         </svg>
-        <Phone className="w-[42px] h-[42px]" strokeWidth={2.3} />
+        <Phone className={isNav ? 'w-7 h-7' : 'w-[42px] h-[42px]'} strokeWidth={2.3} />
       </button>
     </div>
   );

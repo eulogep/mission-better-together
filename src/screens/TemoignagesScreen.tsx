@@ -27,6 +27,11 @@ export const TemoignageGridScreen: React.FC<TemoignageGridScreenProps> = ({
       scrollable
     >
       <div className="px-7 pt-2 pb-4">
+        {/* Honnêteté : ces récits ne sont pas des témoignages réels */}
+        <div role="note" className="mb-5 rounded-[18px] px-4 py-3 bg-[#FFF8D6] border border-[#E5BE1A]/40 text-[12.5px] leading-snug text-[#5c4a00]">
+          <strong>Récits illustratifs.</strong> Ces histoires sont fictives : elles ont été écrites par l’équipe MBT à
+          partir de situations fréquemment décrites par les services d’écoute. Les prénoms sont inventés.
+        </div>
         <div className="grid grid-cols-2 gap-x-7 gap-y-6">
           {TESTIMONIES.map((item, idx) => (
             <button
@@ -280,7 +285,7 @@ export const TestimonyPlayerScreen: React.FC<TestimonyPlayerScreenProps> = ({
           <img src={item.cover} alt="" className="w-full h-full object-cover" />
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
             <span className="px-2.5 py-1 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-medium truncate">
-              {item.speaker} · {item.category}
+              Récit fictif · {item.speaker}
             </span>
             {(HAS_SPEECH || audioOk) && (
               <button

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   CloudRain,
   Compass,
@@ -9,6 +9,8 @@ import {
   Play,
   RotateCcw,
   Sparkles,
+  Timer,
+  VolumeX,
   Volume2,
   Waves,
   Wind,
@@ -16,12 +18,20 @@ import {
 import { ScreenShell } from '../components/ScreenShell';
 import { useSerenity } from '../context/SerenityContext';
 import { SoundChannel, soundEngine } from '../utils/soundEngine';
+import { Preferences, updatePreferences, usePreferences } from '../lib/preferences';
+import { vibrate } from '../lib/device';
 
 interface SanctuaryScreenProps {
   onBack: () => void;
   onHome: () => void;
-  onEmergencyCall: () => void;
+  /** @deprecated SOS dans la navigation */
+  onEmergencyCall?: () => void;
 }
+
+const DURATIONS: Preferences['serenite']['durationMin'][] = [1, 3, 5, 10, null];
+
+const setSerenite = (patch: Partial<Preferences['serenite']>) =>
+  updatePreferences((p) => ({ ...p, serenite: { ...p.serenite, ...patch } }));
 
 type SanctuaryTab = 'respirer' | 'ancrage' | 'galet' | 'sons';
 
@@ -105,46 +115,77 @@ interface Ripple {
   hue: string;
 }
 
-export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
-  onBack,
-  onHome,
-  onEmergencyCall,
-}) => {
+export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({ onBack, onHome }) => {
   const { nightMode, soundLevels, setSoundLevel, applyPreset, stopAllSounds } = useSerenity();
+  const prefs = usePreferences();
+  const systemReduced = useReducedMotion();
+  const reduceMotion = prefs.reduceMotion || !!systemReduced;
   const [tab, setTab] = useState<SanctuaryTab>('respirer');
 
-  // --- Breathing state ---
-  const [patternIdx, setPatternIdx] = useState(0);
+  // --- Breathing state (préférences sauvegardées) ---
+  const [patternIdx, setPatternIdxState] = useState(() =>
+    Math.max(0, BREATH_PATTERNS.findIndex((p) => p.id === prefs.serenite.patternId))
+  );
+  const setPatternIdx = (idx: number) => {
+    setPatternIdxState(idx);
+    setSerenite({ patternId: BREATH_PATTERNS[idx].id });
+  };
   const [running, setRunning] = useState(false);
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [phaseSecLeft, setPhaseSecLeft] = useState(BREATH_PATTERNS[0].phases[0].seconds);
   const [cycles, setCycles] = useState(0);
-  const [chimeOnPhase, setChimeOnPhase] = useState(true);
+  const [elapsed, setElapsed] = useState(0);
+  const [sessionDone, setSessionDone] = useState(false);
+  const chimeOnPhase = prefs.serenite.chime;
+  const durationMin = prefs.serenite.durationMin;
 
   const pattern = BREATH_PATTERNS[patternIdx];
   const currentPhase = pattern.phases[phaseIdx] || pattern.phases[0];
 
-  useEffect(() => {
+  const resetSession = () => {
     setRunning(false);
     setPhaseIdx(0);
     setPhaseSecLeft(pattern.phases[0].seconds);
     setCycles(0);
+    setElapsed(0);
+    setSessionDone(false);
+  };
+
+  useEffect(() => {
+    resetSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patternIdx, pattern]);
 
   useEffect(() => {
     if (!running) return;
     const timer = window.setInterval(() => {
+      setElapsed((e) => e + 1);
       setPhaseSecLeft((prev) => {
         if (prev > 1) return prev - 1;
         const nextIdx = (phaseIdx + 1) % pattern.phases.length;
         setPhaseIdx(nextIdx);
         if (nextIdx === 0) setCycles((c) => c + 1);
         if (chimeOnPhase) soundEngine.playChime(nextIdx === 0 ? 4 : 2, true);
+        if (prefs.serenite.vibration) vibrate(nextIdx === 0 ? 25 : 12);
         return pattern.phases[nextIdx].seconds;
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [running, phaseIdx, pattern, chimeOnPhase]);
+  }, [running, phaseIdx, pattern, chimeOnPhase, prefs.serenite.vibration]);
+
+  // Fin de séance quand la durée choisie est atteinte (fin du cycle en cours)
+  useEffect(() => {
+    if (!running || durationMin === null) return;
+    if (elapsed >= durationMin * 60 && phaseIdx === 0) {
+      setRunning(false);
+      setSessionDone(true);
+      if (chimeOnPhase) soundEngine.playChime(7, true);
+      if (prefs.serenite.vibration) vibrate([30, 60, 30]);
+    }
+  }, [elapsed, phaseIdx, running, durationMin, chimeOnPhase, prefs.serenite.vibration]);
+
+  const formatClock = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  const remaining = durationMin === null ? null : Math.max(0, durationMin * 60 - elapsed);
 
   // --- Grounding 5-4-3-2-1 state ---
   const [groundStep, setGroundStep] = useState(0);
@@ -233,8 +274,6 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
       showBack
       onBack={onBack}
       onBrandClick={onHome}
-      onPhoneFabClick={onEmergencyCall}
-      scrollable
     >
       <div className="px-4 pt-1 flex flex-col gap-4">
         {/* Serene Title */}
@@ -318,14 +357,43 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
                 {pattern.subtitle}
               </p>
 
+              {/* Durée de la séance */}
+              <div className="flex items-center gap-1.5 flex-wrap justify-center" role="group" aria-label="Durée de la séance">
+                <Timer className="w-4 h-4 text-[#7174AA]" />
+                {DURATIONS.map((d) => {
+                  const active = durationMin === d;
+                  return (
+                    <button
+                      key={String(d)}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => {
+                        setSerenite({ durationMin: d });
+                        resetSession();
+                      }}
+                      className={`px-3 py-1 rounded-full text-[12px] font-medium border cursor-pointer ${
+                        active
+                          ? 'bg-[#7174AA] border-[#7174AA] text-white'
+                          : nightMode
+                            ? 'border-white/15 text-[#c9cde4]'
+                            : 'border-[#7174AA]/30 text-[#5c5f82]'
+                      }`}
+                    >
+                      {d === null ? 'Libre' : `${d} min`}
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Luminous Blooming Breathing Orb */}
               <div className="relative w-[224px] h-[224px] flex items-center justify-center my-1">
                 {/* Outer Halo 1 */}
                 <motion.div
-                  animate={{
-                    scale: running ? currentPhase.scale * 1.08 : [0.95, 1.04, 0.95],
-                    opacity: running ? 0.35 : 0.22,
-                  }}
+                  animate={
+                    reduceMotion
+                      ? { scale: 1, opacity: 0.25 }
+                      : { scale: running ? currentPhase.scale * 1.08 : [0.95, 1.04, 0.95], opacity: running ? 0.35 : 0.22 }
+                  }
                   transition={
                     running
                       ? { duration: currentPhase.seconds, ease: 'easeInOut' }
@@ -339,10 +407,11 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
                 />
                 {/* Petal Layer 2 */}
                 <motion.div
-                  animate={{
-                    scale: running ? currentPhase.scale : [0.96, 1.03, 0.96],
-                    rotate: running ? (phaseIdx % 2 === 0 ? 45 : 0) : 0,
-                  }}
+                  animate={
+                    reduceMotion
+                      ? { scale: 1, rotate: 0 }
+                      : { scale: running ? currentPhase.scale : [0.96, 1.03, 0.96], rotate: running ? (phaseIdx % 2 === 0 ? 45 : 0) : 0 }
+                  }
                   transition={
                     running
                       ? { duration: currentPhase.seconds, ease: 'easeInOut' }
@@ -352,9 +421,7 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
                 />
                 {/* Core Breathing Sphere */}
                 <motion.div
-                  animate={{
-                    scale: running ? currentPhase.scale * 0.92 : [0.97, 1.02, 0.97],
-                  }}
+                  animate={reduceMotion ? { scale: 1 } : { scale: running ? currentPhase.scale * 0.92 : [0.97, 1.02, 0.97] }}
                   transition={
                     running
                       ? { duration: currentPhase.seconds, ease: 'easeInOut' }
@@ -367,10 +434,10 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
                   }}
                 >
                   <span className="font-ubuntu font-bold text-[22px] leading-tight">
-                    {running ? currentPhase.label : 'Prêt·e'}
+                    {running ? currentPhase.label : sessionDone ? 'Bravo' : elapsed > 0 ? 'En pause' : 'Prêt·e'}
                   </span>
                   <span className="text-[12px] text-white/90 mt-0.5">
-                    {running ? `${phaseSecLeft} s` : 'Appuie sur Lire'}
+                    {running ? `${phaseSecLeft} s` : sessionDone ? 'Séance terminée' : 'Appuie sur Commencer'}
                   </span>
                 </motion.div>
               </div>
@@ -383,23 +450,41 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
                 {running ? currentPhase.hint : 'Laisse ta respiration suivre le cercle lumineux'}
               </p>
 
+              {/* Sans animation : la phase est indiquée par une barre de progression */}
+              {reduceMotion && running && (
+                <div className="w-full max-w-[260px] h-2 rounded-full bg-[#7174AA]/15 overflow-hidden" aria-hidden="true">
+                  <div
+                    className="h-full bg-[#7174AA] rounded-full"
+                    style={{ width: `${((currentPhase.seconds - phaseSecLeft + 1) / currentPhase.seconds) * 100}%` }}
+                  />
+                </div>
+              )}
+              {remaining !== null && (elapsed > 0 || running) && (
+                <p className={`text-[12.5px] font-medium ${nightMode ? 'text-[#c9cde4]' : 'text-[#5c5f82]'}`} aria-live="polite">
+                  {sessionDone ? 'Séance terminée. Prends un moment avant de reprendre.' : `Temps restant : ${formatClock(remaining)}`}
+                </p>
+              )}
+
               {/* Controls */}
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => {
+                    if (sessionDone) resetSession();
                     if (!running && chimeOnPhase) soundEngine.playChime(4, true);
                     setRunning((r) => !r);
                   }}
                   className="px-6 py-3 rounded-full bg-[#7174AA] hover:bg-[#61649a] text-white font-ubuntu font-medium text-[15px] shadow-md flex items-center gap-2 active:scale-95 transition cursor-pointer"
                 >
                   {running ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  {running ? 'Pause' : 'Commencer'}
+                  {running ? 'Pause' : sessionDone ? 'Recommencer' : elapsed > 0 ? 'Reprendre' : 'Commencer'}
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setChimeOnPhase((c) => !c)}
+                  onClick={() => setSerenite({ chime: !chimeOnPhase })}
+                  aria-pressed={chimeOnPhase}
+                  aria-label="Carillon doux à chaque phase"
                   title="Carillon doux à chaque phase"
                   className={`w-11 h-11 rounded-full border flex items-center justify-center transition cursor-pointer ${
                     chimeOnPhase
@@ -415,6 +500,26 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
                     {cycles} {cycles > 1 ? 'cycles' : 'cycle'}
                   </span>
                 )}
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                <label className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[12px] cursor-pointer ${nightMode ? 'border-white/15 text-[#c9cde4]' : 'border-black/10 text-[#555]'}`}>
+                  <input
+                    type="checkbox"
+                    checked={prefs.reduceMotion}
+                    onChange={(e) => updatePreferences((p) => ({ ...p, reduceMotion: e.target.checked }))}
+                    className="accent-[#7174AA]"
+                  />
+                  Sans animation
+                </label>
+                <label className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[12px] cursor-pointer ${nightMode ? 'border-white/15 text-[#c9cde4]' : 'border-black/10 text-[#555]'}`}>
+                  <input
+                    type="checkbox"
+                    checked={prefs.serenite.vibration}
+                    onChange={(e) => setSerenite({ vibration: e.target.checked })}
+                    className="accent-[#7174AA]"
+                  />
+                  Vibrations
+                </label>
               </div>
             </motion.div>
           )}
@@ -622,6 +727,42 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
               transition={{ duration: 0.25 }}
               className="flex flex-col gap-3"
             >
+              {/* Volume général + coupure (sauvegardés) */}
+              <div className={`rounded-[20px] p-3.5 border flex items-center gap-3 ${nightMode ? 'bg-white/6 border-white/10' : 'bg-white/90 border-black/8'}`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const muted = !prefs.serenite.muted;
+                    setSerenite({ muted });
+                    soundEngine.setMaster(prefs.serenite.masterVolume, muted);
+                  }}
+                  aria-pressed={prefs.serenite.muted}
+                  aria-label={prefs.serenite.muted ? 'Réactiver le son' : 'Couper le son'}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer ${prefs.serenite.muted ? 'bg-[#FF8989] text-white' : 'bg-[#7174AA]/15 text-[#7174AA]'}`}
+                >
+                  {prefs.serenite.muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                </button>
+                <label className="flex-1">
+                  <span className={`block text-[12.5px] font-semibold mb-1 ${nightMode ? 'text-white' : 'text-[#222]'}`}>
+                    Volume général {prefs.serenite.muted ? '(coupé)' : `· ${Math.round(prefs.serenite.masterVolume * 100)} %`}
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={prefs.serenite.masterVolume}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      setSerenite({ masterVolume: v, muted: false });
+                      soundEngine.setMaster(v, false);
+                    }}
+                    aria-label="Volume général"
+                    className="w-full accent-[#7174AA] cursor-pointer"
+                  />
+                </label>
+              </div>
+
               {/* 1-Tap Ambiance Presets */}
               <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
                 {[
@@ -711,7 +852,8 @@ export const SanctuaryScreen: React.FC<SanctuaryScreenProps> = ({
                 })}
               </div>
               <p className="text-[11px] text-center text-[#8e8e93]">
-                L’ambiance sonore continue doucement pendant que tu navigues dans l’application.
+                Sons générés en direct par ton appareil (aucun fichier téléchargé). L’ambiance continue pendant que tu
+                navigues ; le bouton haut-parleur en haut de l’écran la coupe à tout moment.
               </p>
             </motion.div>
           )}

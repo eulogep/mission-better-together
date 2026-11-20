@@ -1,176 +1,101 @@
-import React, { useState } from 'react';
-import {
-  BellRing,
-  BookHeart,
-  BookOpen,
-  EyeOff,
-  HeartHandshake,
-  Home,
-  MapPin,
-  Maximize2,
-  MessageCircle,
-  Moon,
-  PhoneCall,
-  PlayCircle,
-  ShieldAlert,
-  Smartphone,
-  Sun,
-  Users,
-  Volume2,
-  VolumeX,
-  Wind,
-} from 'lucide-react';
-import { AdviceTopic, ContactItem, EMERGENCY_SERVICES, findServiceKey, ProfileId, ThemeKey } from './data/content';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
+import { MotionConfig } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
+import { ContactItem, EMERGENCY_SERVICES, findServiceKey } from './data/content';
 import { SerenityProvider, useSerenity } from './context/SerenityContext';
 import { DiscreetCamouflage } from './components/DiscreetCamouflage';
 import { ToastViewport } from './components/ToastViewport';
+import { AppLayout } from './app/AppLayout';
+import { Route } from './app/routes';
+import { useNavigation } from './app/useNavigation';
 import { isOnboarded } from './lib/profile';
-import { dial, isTouchDevice } from './lib/device';
+import { dial, isTouchDevice, vibrate } from './lib/device';
+import { usePreferences } from './lib/preferences';
+import { lockCarnet } from './features/carnet/session';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { AccueilScreen } from './screens/AccueilScreen';
 import { DetailsScreen } from './screens/DetailsScreen';
 import { AlertScreen } from './screens/AlertScreen';
-import {
-  SecoursCallScreen,
-  TemoinQuestionScreen,
-  UrgenceRoleScreen,
-  VictimeActionsScreen,
-} from './screens/UrgenceScreens';
-import {
-  ConseilDetailScreen,
-  ConseilsMenuScreen,
-  ProfileHubScreen,
-  SinformerScreen,
-} from './screens/SinformerScreens';
-import { SafePlacesScreen } from './screens/SafePlacesScreen';
-import { TemoignageGridScreen, TestimonyPlayerScreen } from './screens/TemoignagesScreen';
+import { SecoursCallScreen, TemoinQuestionScreen, UrgenceRoleScreen, VictimeActionsScreen } from './screens/UrgenceScreens';
+import { ConseilDetailScreen, ConseilsMenuScreen, ProfileHubScreen, SinformerScreen } from './screens/SinformerScreens';
 import { ContactsScreen } from './screens/ContactsScreen';
-import { ChatPsyScreen } from './screens/ChatPsyScreen';
 import { CallScreen } from './screens/CallScreen';
-import { SanctuaryScreen } from './screens/SanctuaryScreen';
-import { JournalScreen } from './screens/JournalScreen';
 
-type Route =
-  | { name: 'onboarding' }
-  | { name: 'accueil' }
-  | { name: 'details' }
-  | { name: 'alert' }
-  | { name: 'urgence-role' }
-  | { name: 'urgence-victime' }
-  | { name: 'urgence-temoin'; step: 'blessee' | 'harceleurs' | 'danger' }
-  | { name: 'urgence-secours'; reason: 'blessee' | 'harceleurs' | 'danger' }
-  | { name: 'sinformer' }
-  | { name: 'profile-hub'; profileId: ProfileId }
-  | { name: 'conseils-menu'; profileId: ProfileId }
-  | { name: 'conseil-detail'; profileId: ProfileId; topic: AdviceTopic }
-  | { name: 'safe-places'; theme: ThemeKey }
-  | { name: 'temoignages-grid' }
-  | { name: 'temoignage-player'; index: number }
-  | { name: 'contacts' }
-  | { name: 'chat-psy' }
-  | { name: 'sanctuary' }
-  | { name: 'journal' }
-  | { name: 'call'; serviceKey: string; customName?: string; customPhone?: string };
+/*
+ * Les écrans d'urgence (accueil, urgence, alerte, contacts, appel) sont chargés immédiatement.
+ * Les autres sont chargés à la demande (premier affichage plus rapide) ; le service worker
+ * les met tous en cache pour le mode hors ligne.
+ */
+const SafePlacesScreen = lazy(() => import('./screens/SafePlacesScreen').then((m) => ({ default: m.SafePlacesScreen })));
+const SanctuaryScreen = lazy(() => import('./screens/SanctuaryScreen').then((m) => ({ default: m.SanctuaryScreen })));
+const CarnetScreen = lazy(() => import('./features/carnet/CarnetScreen').then((m) => ({ default: m.CarnetScreen })));
+const ChatPsyScreen = lazy(() => import('./screens/ChatPsyScreen').then((m) => ({ default: m.ChatPsyScreen })));
+const LibraryScreen = lazy(() => import('./features/info/LibraryScreens').then((m) => ({ default: m.LibraryScreen })));
+const ArticleScreen = lazy(() => import('./features/info/LibraryScreens').then((m) => ({ default: m.ArticleScreen })));
+const StructuresScreen = lazy(() => import('./features/specialistes/StructuresScreens').then((m) => ({ default: m.StructuresScreen })));
+const StructureScreen = lazy(() => import('./features/specialistes/StructuresScreens').then((m) => ({ default: m.StructureScreen })));
+const TemoignageGridScreen = lazy(() => import('./screens/TemoignagesScreen').then((m) => ({ default: m.TemoignageGridScreen })));
+const TestimonyPlayerScreen = lazy(() => import('./screens/TemoignagesScreen').then((m) => ({ default: m.TestimonyPlayerScreen })));
 
 const AppContent: React.FC = () => {
-  const {
-    nightMode,
-    toggleNightMode,
-    discreetMode,
-    enterDiscreetMode,
-    exitDiscreetMode,
-    isSoundActive,
-    toggleQuickAmbient,
-  } = useSerenity();
+  const { discreetMode, exitDiscreetMode } = useSerenity();
+  const nav = useNavigation();
+  const { current, push, pop, goHome, openSection } = nav;
+  const [showOnboarding, setShowOnboarding] = useState(() => !isOnboarded() && current.name === 'accueil');
 
-  const [stack, setStack] = useState<Route[]>(() =>
-    isOnboarded() ? [{ name: 'accueil' }] : [{ name: 'onboarding' }]
-  );
-  const [phoneFrameMode, setPhoneFrameMode] = useState(true);
+  // Mode discret : l'écran de camouflage remplace tout et le carnet se verrouille
+  useEffect(() => {
+    if (discreetMode) lockCarnet();
+  }, [discreetMode]);
 
-  const current = stack[stack.length - 1];
-
-  const push = (route: Route) => setStack((prev) => [...prev, route]);
-  const pop = () => setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
-  const goHome = () => setStack([{ name: 'accueil' }]);
-
+  /**
+   * Appel réel : sur téléphone, le composeur s'ouvre (le système demande confirmation).
+   * L'écran d'appel sert de relais : rappeler, écrire plutôt qu'appeler, informations.
+   */
   const callService = (serviceKey: string, customName?: string, customPhone?: string) => {
     const svc = EMERGENCY_SERVICES[serviceKey];
-    const num = svc ? svc.dialNumber : customPhone || serviceKey;
-    if (isTouchDevice() && num && !svc?.smsOnly) {
-      dial(num);
+    const number = svc ? svc.dialNumber : customPhone;
+    if (number && !svc?.smsOnly && isTouchDevice()) {
+      vibrate(40);
+      dial(number);
     }
-    push({ name: 'call', serviceKey, customName, customPhone });
+    push({ name: 'appel', serviceKey: svc ? serviceKey : 'custom', customName, customPhone });
   };
 
   const callContact = (contact: ContactItem) => {
     const label = contact.lastName ? `${contact.firstName} ${contact.lastName}` : contact.firstName;
-    const svcKey = findServiceKey(contact.phone);
-    if (svcKey) {
-      callService(svcKey);
-    } else {
-      callService('custom', label, contact.phone);
-    }
+    const key = findServiceKey(contact.phone);
+    if (key) callService(key);
+    else callService('custom', label, contact.phone);
   };
 
-  const renderScreen = () => {
-    if (discreetMode) {
-      return <DiscreetCamouflage onExit={exitDiscreetMode} />;
-    }
+  const go = (route: Route) => (route.name === 'accueil' ? goHome() : push(route));
 
+  if (discreetMode) {
+    return (
+      <div className="h-[100dvh] w-full">
+        <DiscreetCamouflage onExit={exitDiscreetMode} />
+      </div>
+    );
+  }
+
+  const renderScreen = (): React.ReactNode => {
     switch (current.name) {
-      case 'onboarding':
-        return (
-          <OnboardingScreen
-            onFinish={(next) => {
-              if (next === 'contacts') {
-                setStack([{ name: 'accueil' }, { name: 'contacts' }]);
-              } else if (next === 'urgence') {
-                setStack([{ name: 'accueil' }, { name: 'urgence-role' }]);
-              } else {
-                setStack([{ name: 'accueil' }]);
-              }
-            }}
-          />
-        );
-
       case 'accueil':
-        return (
-          <AccueilScreen
-            onUrgence={() => push({ name: 'urgence-role' })}
-            onSinformer={() => push({ name: 'sinformer' })}
-            onDetails={() => push({ name: 'details' })}
-            onContacts={() => push({ name: 'contacts' })}
-            onSpecialistes={() => push({ name: 'chat-psy' })}
-            onSanctuary={() => push({ name: 'sanctuary' })}
-            onJournal={() => push({ name: 'journal' })}
-            onEmergencyCall={() => callService('urgence')}
-          />
-        );
+        return <AccueilScreen onNavigate={go} onCall={callService} />;
 
-      case 'details':
+      case 'a-propos':
         return (
           <DetailsScreen
             onBack={pop}
             onHome={goHome}
-            onUrgence={() => push({ name: 'urgence-role' })}
+            onUrgence={() => push({ name: 'urgence' })}
             onSinformer={() => push({ name: 'sinformer' })}
             onEmergencyCall={() => callService('urgence')}
           />
         );
 
-      case 'alert':
-        return (
-          <AlertScreen
-            onBack={pop}
-            onHome={goHome}
-            onContacts={() => push({ name: 'contacts' })}
-            onCall={callService}
-            onCallContact={callContact}
-          />
-        );
-
-      case 'urgence-role':
+      case 'urgence':
         return (
           <UrgenceRoleScreen
             onBack={pop}
@@ -186,7 +111,11 @@ const AppContent: React.FC = () => {
           <VictimeActionsScreen
             onBack={pop}
             onHome={goHome}
-            onMap={() => push({ name: 'safe-places', theme: 'default' })}
+            onMap={() => push({ name: 'lieux' })}
+            onAlert={() => push({ name: 'alerte' })}
+            onJournal={() => push({ name: 'carnet' })}
+            onBreathe={() => push({ name: 'serenite' })}
+            onWhoToCall={() => push({ name: 'article', id: 'a-qui-s-adresser' })}
             onCall={callService}
           />
         );
@@ -200,24 +129,24 @@ const AppContent: React.FC = () => {
             onEmergencyCall={() => callService('urgence')}
             onYes={() => push({ name: 'urgence-secours', reason: current.step })}
             onNo={() => {
-              if (current.step === 'blessee') {
-                push({ name: 'urgence-temoin', step: 'harceleurs' });
-              } else if (current.step === 'harceleurs') {
-                push({ name: 'urgence-temoin', step: 'danger' });
-              } else {
-                push({ name: 'sinformer' });
-              }
+              if (current.step === 'blessee') push({ name: 'urgence-temoin', step: 'harceleurs' });
+              else if (current.step === 'harceleurs') push({ name: 'urgence-temoin', step: 'danger' });
+              else push({ name: 'article', id: 'je-suis-temoin' });
             }}
           />
         );
 
       case 'urgence-secours':
+        return <SecoursCallScreen reason={current.reason} onBack={pop} onHome={goHome} onCall={callService} />;
+
+      case 'alerte':
         return (
-          <SecoursCallScreen
-            reason={current.reason}
+          <AlertScreen
             onBack={pop}
             onHome={goHome}
+            onContacts={() => push({ name: 'contacts' })}
             onCall={callService}
+            onCallContact={callContact}
           />
         );
 
@@ -226,40 +155,53 @@ const AppContent: React.FC = () => {
           <SinformerScreen
             onBack={pop}
             onHome={goHome}
-            onSelectProfile={(profileId) => push({ name: 'profile-hub', profileId })}
-            onEmergencyCall={() => callService('urgence')}
+            onSelectProfile={(profileId) => push({ name: 'profil', profileId })}
+            onLibrary={() => push({ name: 'articles' })}
+            onStructures={() => push({ name: 'specialistes' })}
+            onTemoignages={() => push({ name: 'temoignages' })}
           />
         );
 
-      case 'profile-hub':
+      case 'articles':
+        return (
+          <LibraryScreen
+            initialCategory={current.category}
+            onBack={pop}
+            onHome={goHome}
+            onOpen={(id) => push({ name: 'article', id })}
+          />
+        );
+
+      case 'article':
+        return <ArticleScreen key={current.id} id={current.id} onBack={pop} onHome={goHome} onOpen={(id) => push({ name: 'article', id })} />;
+
+      case 'profil':
         return (
           <ProfileHubScreen
             profileId={current.profileId}
             onBack={pop}
             onHome={goHome}
-            onConseils={() => push({ name: 'conseils-menu', profileId: current.profileId })}
-            onTemoignages={() => push({ name: 'temoignages-grid' })}
-            onSpecialistes={() => push({ name: 'chat-psy' })}
+            onConseils={() => push({ name: 'conseils', profileId: current.profileId })}
+            onTemoignages={() => push({ name: 'temoignages' })}
+            onSpecialistes={() => push({ name: 'specialistes' })}
             onContacts={() => push({ name: 'contacts' })}
             onEmergencyCall={() => callService('urgence')}
           />
         );
 
-      case 'conseils-menu':
+      case 'conseils':
         return (
           <ConseilsMenuScreen
             profileId={current.profileId}
             onBack={pop}
             onHome={goHome}
-            onSelectTopic={(topic) =>
-              push({ name: 'conseil-detail', profileId: current.profileId, topic })
-            }
-            onMap={() => push({ name: 'safe-places', theme: current.profileId })}
+            onSelectTopic={(topic) => push({ name: 'conseil', profileId: current.profileId, topic })}
+            onMap={() => push({ name: 'lieux', theme: current.profileId })}
             onEmergencyCall={() => callService('urgence')}
           />
         );
 
-      case 'conseil-detail':
+      case 'conseil':
         return (
           <ConseilDetailScreen
             profileId={current.profileId}
@@ -267,31 +209,24 @@ const AppContent: React.FC = () => {
             onBack={pop}
             onHome={goHome}
             onCall={callService}
-            onJournal={() => push({ name: 'journal' })}
+            onJournal={() => push({ name: 'carnet' })}
           />
         );
 
-      case 'safe-places':
-        return (
-          <SafePlacesScreen
-            theme={current.theme}
-            onBack={pop}
-            onHome={goHome}
-            onCall={callService}
-          />
-        );
+      case 'lieux':
+        return <SafePlacesScreen theme={current.theme} onBack={pop} onHome={goHome} onCall={callService} />;
 
-      case 'temoignages-grid':
+      case 'temoignages':
         return (
           <TemoignageGridScreen
             onBack={pop}
             onHome={goHome}
-            onSelect={(index) => push({ name: 'temoignage-player', index })}
+            onSelect={(index) => push({ name: 'temoignage', index })}
             onEmergencyCall={() => callService('urgence')}
           />
         );
 
-      case 'temoignage-player':
+      case 'temoignage':
         return (
           <TestimonyPlayerScreen
             initialIndex={current.index}
@@ -302,43 +237,31 @@ const AppContent: React.FC = () => {
         );
 
       case 'contacts':
-        return (
-          <ContactsScreen
-            onBack={pop}
-            onCallContact={callContact}
-            onAlert={() => push({ name: 'alert' })}
-          />
-        );
+        return <ContactsScreen onBack={pop} onCallContact={callContact} onAlert={() => push({ name: 'alerte' })} />;
 
-      case 'chat-psy':
+      case 'specialistes':
         return (
-          <ChatPsyScreen
-            onBack={pop}
-            onCallService={callService}
-            onOpenSanctuary={() => push({ name: 'sanctuary' })}
-          />
-        );
-
-      case 'sanctuary':
-        return (
-          <SanctuaryScreen
+          <StructuresScreen
             onBack={pop}
             onHome={goHome}
-            onEmergencyCall={() => callService('urgence')}
+            onOpen={(id) => push({ name: 'specialiste', id })}
+            onAssistant={() => push({ name: 'assistant' })}
           />
         );
 
-      case 'journal':
-        return (
-          <JournalScreen
-            onBack={pop}
-            onHome={goHome}
-            onOpenSanctuary={() => push({ name: 'sanctuary' })}
-            onEmergencyCall={() => callService('urgence')}
-          />
-        );
+      case 'specialiste':
+        return <StructureScreen id={current.id} onBack={pop} onHome={goHome} onCall={callService} />;
 
-      case 'call':
+      case 'assistant':
+        return <ChatPsyScreen onBack={pop} onCallService={callService} onOpenSanctuary={() => push({ name: 'serenite' })} />;
+
+      case 'serenite':
+        return <SanctuaryScreen onBack={pop} onHome={goHome} />;
+
+      case 'carnet':
+        return <CarnetScreen onBack={pop} onHome={goHome} />;
+
+      case 'appel':
         return (
           <CallScreen
             serviceKey={current.serviceKey}
@@ -350,255 +273,54 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const quickNavItems: { label: string; icon: React.ReactNode; route: Route; active: boolean }[] = [
-    {
-      label: 'Accueil',
-      icon: <Home className="w-4 h-4" />,
-      route: { name: 'accueil' },
-      active: current.name === 'accueil',
-    },
-    {
-      label: 'Sérénité',
-      icon: <Wind className="w-4 h-4 text-[#00c492]" />,
-      route: { name: 'sanctuary' },
-      active: current.name === 'sanctuary',
-    },
-    {
-      label: 'Carnet',
-      icon: <BookHeart className="w-4 h-4 text-[#C691C9]" />,
-      route: { name: 'journal' },
-      active: current.name === 'journal',
-    },
-    {
-      label: 'Alerter SMS',
-      icon: <BellRing className="w-4 h-4 text-[#FF8989]" />,
-      route: { name: 'alert' },
-      active: current.name === 'alert',
-    },
-    {
-      label: 'Urgence',
-      icon: <ShieldAlert className="w-4 h-4 text-[#FF8989]" />,
-      route: { name: 'urgence-role' },
-      active: current.name.startsWith('urgence'),
-    },
-    {
-      label: "S'informer",
-      icon: <BookOpen className="w-4 h-4 text-[#7174AA]" />,
-      route: { name: 'sinformer' },
-      active:
-        current.name === 'sinformer' ||
-        current.name === 'profile-hub' ||
-        current.name.startsWith('conseil'),
-    },
-    {
-      label: 'Lieux sûrs',
-      icon: <MapPin className="w-4 h-4 text-[#00c492]" />,
-      route: { name: 'safe-places', theme: 'primaire' },
-      active: current.name === 'safe-places',
-    },
-    {
-      label: 'Témoignages',
-      icon: <PlayCircle className="w-4 h-4 text-[#C691C9]" />,
-      route: { name: 'temoignages-grid' },
-      active: current.name.startsWith('temoignage'),
-    },
-    {
-      label: 'Contacts',
-      icon: <Users className="w-4 h-4 text-[#007AFF]" />,
-      route: { name: 'contacts' },
-      active: current.name === 'contacts',
-    },
-    {
-      label: 'Spécialiste',
-      icon: <MessageCircle className="w-4 h-4 text-[#2663FF]" />,
-      route: { name: 'chat-psy' },
-      active: current.name === 'chat-psy',
-    },
-    {
-      label: 'Appel 3018',
-      icon: <PhoneCall className="w-4 h-4 text-[#FF3B30]" />,
-      route: { name: 'call', serviceKey: '3018' },
-      active: current.name === 'call',
-    },
-  ];
-
-  if (!phoneFrameMode) {
+  if (showOnboarding) {
     return (
-      <div
-        className={`relative w-screen h-[100dvh] overflow-hidden ${
-          nightMode ? 'bg-[#0e101a]' : 'bg-white'
-        }`}
-      >
-        <div className="w-full max-w-[430px] h-full mx-auto relative shadow-xl overflow-hidden">
-          {renderScreen()}
-          <ToastViewport />
-        </div>
-        <button
-          type="button"
-          onClick={() => setPhoneFrameMode(true)}
-          title="Revenir en mode aperçu téléphone"
-          className="hidden sm:flex fixed top-4 right-4 z-50 items-center gap-1.5 px-3 py-2 rounded-full bg-white/90 border border-black/10 shadow-md text-[12px] font-medium text-[#3b3b3b] hover:bg-white cursor-pointer"
-        >
-          <Smartphone className="w-3.5 h-3.5" />
-          Cadre mobile
-        </button>
-      </div>
+      <AppLayout current={current} onNavigate={openSection} onSos={() => callService('urgence')} hideNav>
+        <OnboardingScreen
+          onFinish={(next) => {
+            setShowOnboarding(false);
+            if (next === 'contacts') push({ name: 'contacts' });
+            if (next === 'urgence') push({ name: 'urgence' });
+          }}
+        />
+        <ToastViewport />
+      </AppLayout>
     );
   }
 
   return (
-    <div
-      className={`min-h-[100dvh] w-full flex items-center justify-center sm:p-6 transition-colors duration-700 ${
-        nightMode
-          ? 'sm:bg-gradient-to-br sm:from-[#0e1120] sm:via-[#161a2e] sm:to-[#1d192b]'
-          : 'sm:bg-gradient-to-br sm:from-[#edf4f8] sm:via-[#f6f4fb] sm:to-[#fff8ea]'
-      }`}
+    <AppLayout
+      current={current}
+      onNavigate={openSection}
+      onSos={() => callService('urgence')}
+      hideNav={current.name === 'appel'}
     >
-      <div className="w-full sm:w-auto flex flex-col lg:flex-row items-center gap-8">
-        {/* Desktop Serenity Companion Sidebar */}
-        <aside
-          className={`hidden lg:flex flex-col w-[305px] backdrop-blur-md border rounded-[28px] p-6 transition-colors duration-500 ${
-            nightMode
-              ? 'bg-[#1a1e30]/85 border-white/10 text-[#eef0fa] shadow-[0_24px_60px_rgba(0,0,0,0.45)]'
-              : 'bg-white/85 border-black/8 text-[#1d1b20] shadow-[0_20px_50px_rgba(30,35,60,0.08)]'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3.5">
-            <img
-              src="/assets/mission-logo.png"
-              alt="Mission Better Together"
-              className={`h-7 w-auto object-contain ${nightMode ? 'brightness-125' : ''}`}
-            />
-            <button
-              type="button"
-              onClick={() => setPhoneFrameMode(false)}
-              title="Plein écran"
-              className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition ${
-                nightMode
-                  ? 'bg-white/10 text-white/80 hover:bg-white/15'
-                  : 'bg-black/5 text-[#555] hover:bg-black/10'
-              }`}
-            >
-              <Maximize2 className="w-4 h-4" />
-            </button>
-          </div>
-
-          <p
-            className={`text-[12.5px] leading-relaxed mb-4 ${
-              nightMode ? 'text-[#adb3cc]' : 'text-[#555]'
-            }`}
-          >
-            Un refuge bienveillant contre le harcèlement : apaisement sensoriel, respiration guidée,
-            carnet protégé, carte OpenStreetMap de lieux sûrs et écoute d’urgence.
-          </p>
-
-          {/* Instant Serenity Controls */}
-          <div className="grid grid-cols-3 gap-1.5 mb-5">
-            <button
-              type="button"
-              onClick={toggleQuickAmbient}
-              className={`py-2 px-2 rounded-xl text-[11px] font-medium flex flex-col items-center gap-1 border transition cursor-pointer ${
-                isSoundActive
-                  ? 'bg-[#00e8ae]/18 border-[#00c492]/50 text-[#00a87e]'
-                  : nightMode
-                  ? 'bg-white/6 border-white/10 text-[#c2c7df] hover:bg-white/10'
-                  : 'bg-[#f4f5f9] border-transparent text-[#444] hover:bg-[#eaecf4]'
-              }`}
-            >
-              {isSoundActive ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              <span>Pluie 432Hz</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleNightMode}
-              className={`py-2 px-2 rounded-xl text-[11px] font-medium flex flex-col items-center gap-1 border transition cursor-pointer ${
-                nightMode
-                  ? 'bg-[#ffde53]/18 border-[#ffde53]/40 text-[#ffde53]'
-                  : 'bg-[#f4f5f9] border-transparent text-[#444] hover:bg-[#eaecf4]'
-              }`}
-            >
-              {nightMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              <span>{nightMode ? 'Jour doux' : 'Nuit'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={discreetMode ? exitDiscreetMode : enterDiscreetMode}
-              className={`py-2 px-2 rounded-xl text-[11px] font-medium flex flex-col items-center gap-1 border transition cursor-pointer ${
-                discreetMode
-                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-600'
-                  : nightMode
-                  ? 'bg-white/6 border-white/10 text-[#c2c7df] hover:bg-white/10'
-                  : 'bg-[#f4f5f9] border-transparent text-[#444] hover:bg-[#eaecf4]'
-              }`}
-            >
-              <EyeOff className="w-4 h-4" />
-              <span>Discret</span>
-            </button>
-          </div>
-
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8e8e93] mb-2">
-            Explorer les écrans
-          </p>
-          <div className="grid grid-cols-2 gap-1.5">
-            {quickNavItems.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => {
-                  if (discreetMode) exitDiscreetMode();
-                  setStack([
-                    { name: 'accueil' },
-                    ...(item.route.name === 'accueil' ? [] : [item.route]),
-                  ]);
-                }}
-                className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-[12px] font-medium transition cursor-pointer text-left ${
-                  item.active && !discreetMode
-                    ? nightMode
-                      ? 'bg-white text-[#141724] shadow-sm'
-                      : 'bg-[#1d1b20] text-white shadow-sm'
-                    : nightMode
-                    ? 'bg-white/6 text-[#d2d6eb] hover:bg-white/12'
-                    : 'bg-[#f4f5f8] text-[#333] hover:bg-[#e8ebf2]'
-                }`}
-              >
-                {item.icon}
-                <span className="truncate">{item.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <div
-            className={`mt-4 pt-3.5 border-t flex flex-col gap-1.5 text-[11.5px] ${
-              nightMode ? 'border-white/10 text-[#9aa0bc]' : 'border-black/8 text-[#666]'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <HeartHandshake className="w-4 h-4 text-[#7174AA] shrink-0" />
-              <span>3018 · 3020 · 3114 · 17 (gratuits)</span>
+      <div key={`${nav.depth}-${current.name}`} className={`mbt-screen mbt-enter-${nav.direction} absolute inset-0`}>
+        <Suspense
+          fallback={
+            <div className="w-full h-full flex items-center justify-center">
+              <Loader2 className="w-7 h-7 animate-spin text-[#7174AA]" />
             </div>
-            <span className="text-[10.5px] opacity-75">
-              Astuce sécurité : appuyez 2× sur{' '}
-              <kbd className="px-1 py-0.5 rounded bg-black/10">Échap</kbd> pour le Mode Discret.
-            </span>
-          </div>
-        </aside>
-
-        {/* Mobile Device Frame */}
-        <main className="relative w-full h-[100dvh] sm:w-[390px] sm:h-[844px] sm:max-h-[94dvh] bg-white sm:rounded-[48px] sm:border-[10px] sm:border-[#1c1c1e] sm:shadow-[0_32px_90px_rgba(20,24,45,0.24)] overflow-hidden">
+          }
+        >
           {renderScreen()}
-          <ToastViewport />
-        </main>
+        </Suspense>
       </div>
-    </div>
+      <ToastViewport />
+    </AppLayout>
   );
 };
 
-export const App: React.FC = () => (
-  <SerenityProvider>
-    <AppContent />
-  </SerenityProvider>
-);
+export const App: React.FC = () => {
+  const prefs = usePreferences();
+  return (
+    // « Sans animation » (préférence MBT) ou réglage système → animations décoratives désactivées
+    <MotionConfig reducedMotion={prefs.reduceMotion ? 'always' : 'user'}>
+      <SerenityProvider>
+        <AppContent />
+      </SerenityProvider>
+    </MotionConfig>
+  );
+};
 
 export default App;

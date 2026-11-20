@@ -1,5 +1,6 @@
 import React from 'react';
-import { ExternalLink, NotebookPen, Phone } from 'lucide-react';
+import { BookOpenText, Building2, ChevronRight, ExternalLink, NotebookPen, Phone, PlayCircle } from 'lucide-react';
+import { useSerenity } from '../context/SerenityContext';
 import { ScreenShell } from '../components/ScreenShell';
 import { MbtButton } from '../components/MbtButton';
 import { AdviceTopic, PROFILES, ProfileId, REPORT_LINKS, THEMES } from '../data/content';
@@ -9,16 +10,29 @@ interface SinformerScreenProps {
   onBack: () => void;
   onHome: () => void;
   onSelectProfile: (profile: ProfileId) => void;
-  onEmergencyCall: () => void;
+  onLibrary: () => void;
+  onStructures: () => void;
+  onTemoignages: () => void;
+  /** @deprecated SOS dans la navigation */
+  onEmergencyCall?: () => void;
 }
 
 export const SinformerScreen: React.FC<SinformerScreenProps> = ({
   onBack,
   onHome,
   onSelectProfile,
-  onEmergencyCall,
+  onLibrary,
+  onStructures,
+  onTemoignages,
 }) => {
+  const { nightMode } = useSerenity();
   const saved = getSavedProfile();
+  const hubCard = nightMode ? 'bg-white/[0.06] border-white/10 text-white' : 'bg-white/95 border-black/[0.08] text-[#1d1b20]';
+  const hubItems = [
+    { label: 'Comprendre et agir', hint: 'Fiches sourcées : formes, preuves, loi, à qui parler', icon: BookOpenText, color: '#7174AA', onClick: onLibrary },
+    { label: 'Structures d’aide', hint: '3018, 119, 3114, Ma Sécurité… coordonnées vérifiées', icon: Building2, color: '#2663FF', onClick: onStructures },
+    { label: 'Témoignages', hint: 'Récits illustratifs, lus à voix haute', icon: PlayCircle, color: '#C691C9', onClick: onTemoignages },
+  ];
   // Petite étiquette « Toi » sur le profil choisi au premier lancement
   const mine = (id: ProfileId) =>
     saved === id ? (
@@ -27,17 +41,31 @@ export const SinformerScreen: React.FC<SinformerScreenProps> = ({
       </span>
     ) : null;
   return (
-  <ScreenShell
-    theme="sinformer"
-    showBack
-    onBack={onBack}
-    onBrandClick={onHome}
-    onPhoneFabClick={onEmergencyCall}
-  >
-    <div className="px-4 mt-10">
-      <h1 className="font-ubuntu font-bold text-[32px] leading-[1.3] text-[#7174AA] pl-5 mb-12">
-        Je suis...
-      </h1>
+  <ScreenShell theme="sinformer" showBack onBack={onBack} onBrandClick={onHome}>
+    <div className="px-4 mt-4">
+      <div className="flex flex-col gap-2.5 mb-8">
+        {hubItems.map((it) => (
+          <button
+            key={it.label}
+            type="button"
+            onClick={it.onClick}
+            className={`flex items-center gap-3 rounded-[22px] border-2 px-4 py-3 text-left hover:shadow-md active:scale-[0.99] transition cursor-pointer ${hubCard}`}
+          >
+            <span className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${it.color}1f`, color: it.color }}>
+              <it.icon className="w-6 h-6" />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block font-ubuntu font-medium text-[16px]">{it.label}</span>
+              <span className="block text-[12.5px] opacity-70 leading-snug">{it.hint}</span>
+            </span>
+            <ChevronRight className="w-5 h-5 opacity-50 shrink-0" />
+          </button>
+        ))}
+      </div>
+
+      <h2 className="font-ubuntu font-bold text-[26px] leading-[1.3] text-[#7174AA] pl-2 mb-6">
+        Des conseils pour moi : je suis…
+      </h2>
 
       <div className="grid grid-cols-2 gap-x-5 gap-y-4">
         <div className="relative">

@@ -16,6 +16,21 @@ class SerenitySoundEngine {
   private channelGains: Partial<Record<SoundChannel, GainNode>> = {};
   private initialized = false;
   private levels: SoundLevels = { rain: 0, ocean: 0, breeze: 0, harmony: 0 };
+  private masterVolume = 0.7;
+  private muted = false;
+
+  private masterTarget() {
+    return this.muted ? 0 : this.masterVolume * 0.93;
+  }
+
+  /** Volume général (0 à 1) et coupure du son, appliqués à toutes les ambiances et carillons. */
+  public setMaster(volume: number, muted: boolean) {
+    this.masterVolume = Math.max(0, Math.min(1, volume));
+    this.muted = muted;
+    if (this.ctx && this.masterGain) {
+      this.masterGain.gain.setTargetAtTime(this.masterTarget(), this.ctx.currentTime, 0.08);
+    }
+  }
 
   private ensureContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -26,7 +41,7 @@ class SerenitySoundEngine {
       if (!AC) return null;
       this.ctx = new AC();
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0.65;
+      this.masterGain.gain.value = this.masterTarget();
       this.masterGain.connect(this.ctx.destination);
     }
     if (this.ctx.state === 'suspended') {

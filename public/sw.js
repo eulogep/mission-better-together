@@ -2,7 +2,7 @@
  * Service worker MBT : rend l'application disponible hors ligne (numéros d'urgence,
  * conseils, contacts, journal). Les cartes et API externes restent en ligne uniquement.
  */
-const CACHE = 'mbt-v3';
+const CACHE = 'mbt-v4';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -23,10 +23,21 @@ const PRECACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
+    (async () => {
+      const cache = await caches.open(CACHE);
+      await cache.addAll(PRECACHE);
+      // Fichiers du build (JS/CSS/polices), y compris les écrans chargés à la demande
+      try {
+        const res = await fetch('/precache-manifest.json', { cache: 'no-store' });
+        if (res.ok) {
+          const files = await res.json();
+          await Promise.all(files.map((f) => cache.add(f).catch(() => undefined)));
+        }
+      } catch {
+        // pas de manifeste (mode développement) : mise en cache au fil de l'eau
+      }
+      await self.skipWaiting();
+    })()
   );
 });
 
