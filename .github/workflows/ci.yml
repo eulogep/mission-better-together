@@ -34,7 +34,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chrome
+      # Google Chrome est préinstallé sur les runners GitHub (channel « chrome » de playwright.config.ts)
+      - run: google-chrome --version
       - run: npm run test:e2e
         env:
           CI: true
